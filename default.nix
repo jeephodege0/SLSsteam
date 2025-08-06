@@ -10,8 +10,8 @@ pkgs.pkgsi686Linux.stdenv.mkDerivation {
   src = ./.;
 
   nativeBuildInputs = with pkgs; [
-    pkgsi686Linux.pkg-config
-    pkgsi686Linux.makeWrapper
+    pkg-config
+    makeWrapper
   ];
 
   buildInputs = with pkgs.pkgsi686Linux; [
@@ -25,8 +25,7 @@ pkgs.pkgsi686Linux.stdenv.mkDerivation {
   '';
 
   installPhase = ''
-    mkdir -p $out/bin/
-    mkdir -p $out
+    mkdir -p $out/
     cp bin/SLSsteam.so $out/
   '';
 
