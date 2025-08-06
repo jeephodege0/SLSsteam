@@ -74,6 +74,7 @@ Afterwards run the installer again if that's what you've been using to launch SL
 
 ## Credits
 
+- [DeveloperMikey](https://github.com/DeveloperMikey): Added Nix support 
 - Riku_Wayfinder: Being extremely supportive and lightening my workload by a lot.
   So show him some love my guys <3
 - thismanq: Informing me that DisableFamilyShareLockForOthers is possible
