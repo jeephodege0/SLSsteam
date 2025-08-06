@@ -42,6 +42,27 @@ Configuration gets created at ~/.config/SLSsteam/config.yaml during first run
 ./setup.sh uninstall
 ```
 
+## NixOS
+Add this to your flake inputs
+```nix
+sls-steam = {
+  url = "github:AceSLS/SLSsteam";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+```
+Then, add it to your packages and run it with `SLSsteam` from the terminal
+```nix
+environment.systemPackages = [inputs.sls-steam.packages.${pkgs.system}.wrapped];
+```
+Alternatively, to have it run with steam on any launch, add it to your steam environment variables
+```nix
+programs.steam.package = pkgs.steam.override {
+  extraEnv = {
+    LD_AUDIT = "${inputs.sls-steam.packages.${pkgs.system}.sls-steam}/SLSsteam.so";
+  };
+};
+```
+
 ## Updating
 
 ```bash
