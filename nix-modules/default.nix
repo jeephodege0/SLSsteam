@@ -7,7 +7,7 @@
 pkgs.pkgsi686Linux.stdenv.mkDerivation {
   pname = "SLSsteam";
   version = "${rev}";
-  src = ./.;
+  src = ../.;
 
   nativeBuildInputs = with pkgs; [
     pkg-config
