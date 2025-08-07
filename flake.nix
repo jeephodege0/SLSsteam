@@ -22,9 +22,13 @@
     formatter = forAllSystems (pkgs: pkgs.alejandra);
 
     packages = forAllSystems (pkgs: rec {
-      sls-steam = pkgs.callPackage ./default.nix {rev = self.rev or self.dirtyRev or "unknown";};
-      wrapped = pkgs.callPackage ./wrapped.nix {rev = self.rev or self.dirtyRev or "unknown";};
+      sls-steam = pkgs.callPackage ./nix-modules/default.nix {rev = self.rev or self.dirtyRev or "unknown";};
+      wrapped = pkgs.callPackage ./nix-modules/wrapped.nix {rev = self.rev or self.dirtyRev or "unknown";};
       default = sls-steam;
     });
+
+    homeModules = {
+      sls-steam = import ./nix-modules/home.nix;
+    };
   };
 }
