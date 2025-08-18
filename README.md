@@ -74,6 +74,9 @@ Afterwards run the installer again if that's what you've been using to launch SL
 
 ## Credits
 
+- Special thanks to all the staff members of the Anti Denuvo Sanctuary
+  for all the hard work they do. They also found a way to use SLSsteam
+  I didn't even intend to, so shoutout to them
 - [DeveloperMikey](https://github.com/DeveloperMikey): Added Nix support 
 - Riku_Wayfinder: Being extremely supportive and lightening my workload by a lot.
   So show him some love my guys <3
