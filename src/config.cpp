@@ -1,5 +1,6 @@
 #include "config.hpp"
 
+#include "log.hpp"
 #include "yaml-cpp/yaml.h"
 
 #include <cmath>
@@ -21,6 +22,10 @@ static const char* defaultConfig =
 "#  AppId:\n"
 "#    FirstDlcAppId: \"Dlc Name\"\n"
 "#    SecondDlcAppId: \"Dlc Name\"\n\n"
+"#DenuvoGames:\n"
+"#  SteamId:\n"
+"#    -  AppId1\n"
+"#    -  AppId2\n"
 "#Disables Family Share license locking for self and others\n"
 "DisableFamilyShareLock: yes\n\n"
 "#Switches to whitelist instead of the default blacklist\n"
@@ -37,6 +42,10 @@ static const char* defaultConfig =
 "#Extra Data for Dlcs belonging to a specific AppId. Only needed\n"
 "#when the App you're playing is hit by Steams 64 DLC limit\n"
 "DlcData:\n\n"
+"#Blocks games from unlocking on wrong accounts\n"
+"DenuvoGames:\n\n"
+"#Spoof Denuvo Games owner instead of blocking them\n"
+"DenuvoSpoof: no\n\n"
 "#Automatically disable SLSsteam when steamclient.so does not match a predefined file hash that is known to work\n"
 "#You should enable this if you're planing to use SLSsteam with Steam Deck's gamemode\n"
 "SafeMode: no\n\n"
@@ -131,6 +140,7 @@ bool CConfig::loadSettings()
 	safeMode = getSetting<bool>(node, "SafeMode", false);
 	warnHashMissmatch = getSetting<bool>(node, "WarnHashMissmatch", false);
 	extendedLogging = getSetting<bool>(node, "ExtendedLogging", false);
+	denuvoSpoof = getSetting<bool>(node, "DenuvoSpoof", false);
 
 	//TODO: Create smart logging function to log them automatically via getSetting
 	g_pLog->info("DisableFamilyShareLock: %i\n", disableFamilyLock);
@@ -140,6 +150,7 @@ bool CConfig::loadSettings()
 	g_pLog->info("SafeMode: %i\n", safeMode);
 	g_pLog->info("WarnHashMissmatch: %i\n", warnHashMissmatch);
 	g_pLog->info("ExtendedLogging: %i\n", extendedLogging);
+	g_pLog->info("DenuvoSpoof: %i\n", denuvoSpoof);
 
 	//TODO: Create function to parse these kinda nodes, instead of c+p them
 	const auto appIdsNode = node["AppIds"];
@@ -220,7 +231,37 @@ bool CConfig::loadSettings()
 	}
 	else
 	{
-		g_pLog->notify("Missing DlcData entry in config!\n");
+		g_pLog->notify("Missing DlcData entry in config!");
+	}
+
+	const auto denuvoGamesNode = node["DenuvoGames"];
+	if (denuvoGamesNode)
+	{
+		for (auto& steamIdNode : denuvoGamesNode)
+		{
+			try
+			{
+				const uint32_t steamId = steamIdNode.first.as<uint32_t>();
+				denuvoGames[steamId] = std::unordered_set<uint32_t>();
+
+				for (auto& appIdNode : steamIdNode.second)
+				{
+					const uint32_t appId = appIdNode.as<uint32_t>();
+					denuvoGames[steamId].emplace(appId);
+
+					//Again, not loggin SteamId because of privacy
+					g_pLog->debug("Added DenuvoGame %u\n", appId, steamId);
+				}
+			}
+			catch (...)
+			{
+				g_pLog->notify("Failed to parse DenuvoGames!");
+			}
+		}
+	}
+	else
+	{
+		g_pLog->notify("Missing DenuvoGames entry in config!");
 	}
 
 	return true;
@@ -258,6 +299,20 @@ bool CConfig::shouldExcludeAppId(uint32_t appId)
 
 	g_pLog->once("shouldExcludeAppId(%u) -> %i\n", appId, exclude);
 	return exclude;
+}
+
+uint32_t CConfig::getDenuvoGameOwner(uint32_t appId)
+{
+	for(const auto& tpl : denuvoGames)
+	{
+		if (tpl.second.contains(appId))
+		{
+			g_pLog->once("%u is DenuvoGame\n", appId);
+			return tpl.first;
+		}
+	}
+
+	return 0;
 }
 
 CConfig g_config = CConfig();

@@ -4,6 +4,7 @@
 #include "log.hpp"
 #include "memhlp.hpp"
 #include "patterns.hpp"
+#include "sdk/IClientUser.hpp"
 #include "vftableinfo.hpp"
 
 #include "libmem/libmem.h"
@@ -159,15 +160,32 @@ static bool hkCheckAppOwnership(void* a0, uint32_t appId, CAppOwnershipInfo* pOw
 		return ret;
 	}
 
+	const u_int32_t denuvoOwner = g_config.getDenuvoGameOwner(appId);
+	//Do not modify Denuvo enabled Games
+	if (!g_config.denuvoSpoof && denuvoOwner && denuvoOwner != g_currentSteamId)
+	{
+		//Would love to log the SteamId, but for users anonymity I won't
+		g_pLog->once("Skipping %u because it's a Denuvo game from someone else\n", appId);
+		return ret;
+	}
+
 	if (g_config.isAddedAppId(appId) || (g_config.playNotOwnedGames && !pOwnershipInfo->purchased))
 	{
-		//Changing the purchased field is enough, but just for nicety in the Steamclient UI we change the owner too
-		pOwnershipInfo->ownerSteamId = g_currentSteamId;
-		pOwnershipInfo->purchased = true;
+		if (!denuvoOwner || denuvoOwner == g_currentSteamId)
+		{
+			//Changing the purchased field is enough, but just for nicety in the Steamclient UI we change the owner too
+			pOwnershipInfo->ownerSteamId = g_currentSteamId;
+			pOwnershipInfo->familyShared = false;
+		}
+		else if (denuvoOwner)
+		{
+			pOwnershipInfo->ownerSteamId = denuvoOwner;
+			pOwnershipInfo->familyShared = true;
+		}
 
+		pOwnershipInfo->purchased = true;
 		//Unnessecary but whatever
 		pOwnershipInfo->permanent = true;
-		pOwnershipInfo->familyShared = false;
 
 		//Found in backtrace
 		pOwnershipInfo->releaseState = 4;
@@ -180,7 +198,7 @@ static bool hkCheckAppOwnership(void* a0, uint32_t appId, CAppOwnershipInfo* pOw
 
 	//Doing that might be not worth it since this will most likely be easier to mantain
 	//TODO: Backtrace those 4 calls and only patch the really necessary ones since this might be prone to breakage
-	if (g_config.disableFamilyLock && appIdOwnerOverride.count(appId) && appIdOwnerOverride.at(appId) < 4)
+	if (!denuvoOwner && g_config.disableFamilyLock && appIdOwnerOverride.count(appId) && appIdOwnerOverride.at(appId) < 4)
 	{
 		pOwnershipInfo->ownerSteamId = 1; //Setting to "arbitrary" steam Id instead of own, otherwise bypass won't work for own games
 		//Unnessecarry again, but whatever

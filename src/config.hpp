@@ -26,6 +26,9 @@ public:
 	std::unordered_set<uint32_t> appIds;
 	std::unordered_set<uint32_t> addedAppIds;
 	std::unordered_map<uint32_t, CDlcData> dlcData;
+	//SteamId, AppIds tuple
+	std::unordered_map<uint32_t, std::unordered_set<uint32_t>> denuvoGames;
+	bool denuvoSpoof;
 
 	bool disableFamilyLock;
 	bool useWhiteList;
@@ -64,6 +67,7 @@ public:
 	bool addAdditionalAppId(uint32_t appId);
 
 	bool shouldExcludeAppId(uint32_t appId);
+	uint32_t getDenuvoGameOwner(uint32_t appId);
 };
 
 extern CConfig g_config;
