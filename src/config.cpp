@@ -22,10 +22,11 @@ static const char* defaultConfig =
 "#  AppId:\n"
 "#    FirstDlcAppId: \"Dlc Name\"\n"
 "#    SecondDlcAppId: \"Dlc Name\"\n\n"
+"#Example of DenuvoGames:\n"
 "#DenuvoGames:\n"
 "#  SteamId:\n"
 "#    -  AppId1\n"
-"#    -  AppId2\n"
+"#    -  AppId2\n\n"
 "#Disables Family Share license locking for self and others\n"
 "DisableFamilyShareLock: yes\n\n"
 "#Switches to whitelist instead of the default blacklist\n"
@@ -49,9 +50,13 @@ static const char* defaultConfig =
 "#Automatically disable SLSsteam when steamclient.so does not match a predefined file hash that is known to work\n"
 "#You should enable this if you're planing to use SLSsteam with Steam Deck's gamemode\n"
 "SafeMode: no\n\n"
+"#Toggles notifications via notify-send\n"
+"Notifications: yes\n\n"
 "#Warn user via notification when steamclient.so hash differs from known safe hash\n"
 "#Mostly useful for development so I don't accidentally miss an update\n"
 "WarnHashMissmatch: no\n\n"
+"#Notify when SLSsteam is done\n"
+"NotifyInit: yes\n\n"
 "#Logs all calls to Steamworks (this makes the logfile huge! Only useful for debugging/analyzing\n"
 "ExtendedLogging: no";
 
@@ -138,7 +143,9 @@ bool CConfig::loadSettings()
 	automaticFilter = getSetting<bool>(node, "AutoFilterList", true);
 	playNotOwnedGames = getSetting<bool>(node, "PlayNotOwnedGames", false);
 	safeMode = getSetting<bool>(node, "SafeMode", false);
+	notifications = getSetting<bool>(node, "Notifications", true);
 	warnHashMissmatch = getSetting<bool>(node, "WarnHashMissmatch", false);
+	notifyInit = getSetting<bool>(node, "NotifyInit", true);
 	extendedLogging = getSetting<bool>(node, "ExtendedLogging", false);
 	denuvoSpoof = getSetting<bool>(node, "DenuvoSpoof", false);
 
@@ -148,7 +155,9 @@ bool CConfig::loadSettings()
 	g_pLog->info("AutoFilterList: %i\n", automaticFilter);
 	g_pLog->info("PlayNotOwnedGames: %i\n", playNotOwnedGames);
 	g_pLog->info("SafeMode: %i\n", safeMode);
+	g_pLog->info("Notifications: %i\n", notifications);
 	g_pLog->info("WarnHashMissmatch: %i\n", warnHashMissmatch);
+	g_pLog->info("NotifyInit: %i\n", notifyInit);
 	g_pLog->info("ExtendedLogging: %i\n", extendedLogging);
 	g_pLog->info("DenuvoSpoof: %i\n", denuvoSpoof);
 
@@ -307,7 +316,7 @@ uint32_t CConfig::getDenuvoGameOwner(uint32_t appId)
 	{
 		if (tpl.second.contains(appId))
 		{
-			g_pLog->once("%u is DenuvoGame\n", appId);
+			//g_pLog->once("%u is DenuvoGame\n", appId);
 			return tpl.first;
 		}
 	}

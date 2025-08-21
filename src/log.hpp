@@ -153,6 +153,8 @@ public:
 		__log(LogLevel::Warn, msg, args...);
 	}
 
+	//Do not include config.hpp in this header, otherwise things will break :) (proly due to recursive inclusion)
+	static bool shouldNotify();
 	static CLog* createDefaultLog();
 };
 

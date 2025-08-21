@@ -1,4 +1,6 @@
 #include "log.hpp"
+#include "config.hpp"
+
 #include <cstdlib>
 #include <memory>
 
@@ -22,6 +24,12 @@ CLog::~CLog()
 	{
 		free(msg);
 	}
+}
+
+//Dirty workaround for not being able to access g_config from __log
+bool CLog::shouldNotify()
+{
+	return g_config.notifications;
 }
 
 CLog* CLog::createDefaultLog()

@@ -172,7 +172,10 @@ static void load()
 		return;
 	}
 
-	g_pLog->notify("Loaded successfully");
+	if (g_config.notifyInit)
+	{
+		g_pLog->notify("Loaded successfully");
+	}
 }
 
 unsigned int la_version(unsigned int)
