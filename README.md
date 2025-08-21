@@ -43,18 +43,25 @@ Configuration gets created at ~/.config/SLSsteam/config.yaml during first run
 ```
 
 ## NixOS
+
 Add this to your flake inputs
+
 ```nix
 sls-steam = {
   url = "github:AceSLS/SLSsteam";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 ```
+
 Then, add it to your packages and run it with `SLSsteam` from the terminal
+
 ```nix
 environment.systemPackages = [inputs.sls-steam.packages.${pkgs.system}.wrapped];
 ```
-Alternatively, to have it run with steam on any launch, add it to your steam environment variables
+
+Alternatively, to have it run with steam on any launch,
+add it to your steam environment variables
+
 ```nix
 programs.steam.package = pkgs.steam.override {
   extraEnv = {
@@ -62,6 +69,32 @@ programs.steam.package = pkgs.steam.override {
   };
 };
 ```
+
+<details>
+<summary>Configuration on NixOS</summary>
+
+You can configure SLSsteam declaratively using the home-manager module
+
+Add the module to your imports
+
+```nix
+imports = [inputs.sls-steam.homeModules.sls-steam];
+```
+
+Then configure it through `services.sls-steam.config`. For example:
+
+```nix
+services.sls-steam.config = {
+  PlayNotOwnedGames = true;
+  AdditionalApps = [
+    3769130
+  ];
+};
+```
+
+You can find further details in the [definition file](nix-modules/home.nix)
+
+</details>
 
 ## Updating
 
@@ -88,3 +121,4 @@ Afterwards run the installer again if that's what you've been using to launch SL
   for easy instrumentation which helps a lot in analyzing, testing and debugging
 - All the folks working on Ghidra,
   this was my first project using it and I'm in love with it!
+
