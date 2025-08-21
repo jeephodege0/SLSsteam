@@ -55,7 +55,7 @@ static const char* defaultConfig =
 "#Warn user via notification when steamclient.so hash differs from known safe hash\n"
 "#Mostly useful for development so I don't accidentally miss an update\n"
 "WarnHashMissmatch: no\n\n"
-"#Notify when SLSsteam is done\n"
+"#Notify when SLSsteam is done initializing\n"
 "NotifyInit: yes\n\n"
 "#Logs all calls to Steamworks (this makes the logfile huge! Only useful for debugging/analyzing\n"
 "ExtendedLogging: no";
