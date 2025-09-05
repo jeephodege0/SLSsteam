@@ -4,6 +4,7 @@
 #include "log.hpp"
 #include "memhlp.hpp"
 #include "patterns.hpp"
+#include "sdk/IClientUser.hpp"
 #include "vftableinfo.hpp"
 
 #include "libmem/libmem.h"
@@ -43,11 +44,11 @@ VFTHook<T>::VFTHook(const char* name) : Hook<T>::Hook(name)
 }
 
 template<typename T>
-bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, T hookFn)
+bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, lm_byte_t* extraData, lm_size_t extraDataSize, T hookFn)
 {
 	//Hardcoding g_modSteamClient here is definitely bad design, but we can easily change that
 	//in case we ever need to
-	lm_address_t oFn = MemHlp::searchSignature(this->name.c_str(), pattern, g_modSteamClient, followMode);
+	lm_address_t oFn = MemHlp::searchSignature(this->name.c_str(), pattern, g_modSteamClient, followMode, extraData, extraDataSize);
 	if (oFn == LM_ADDRESS_BAD)
 	{
 		return false;
@@ -57,6 +58,12 @@ bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode follo
 	this->hookFn.fn = hookFn;
 
 	return true;
+}
+
+template<typename T>
+bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, T hookFn)
+{
+	return setup(pattern, followMode, nullptr, 0, hookFn);
 }
 
 template<typename T>
@@ -159,15 +166,32 @@ static bool hkCheckAppOwnership(void* a0, uint32_t appId, CAppOwnershipInfo* pOw
 		return ret;
 	}
 
+	const u_int32_t denuvoOwner = g_config.getDenuvoGameOwner(appId);
+	//Do not modify Denuvo enabled Games
+	if (!g_config.denuvoSpoof && denuvoOwner && denuvoOwner != g_currentSteamId)
+	{
+		//Would love to log the SteamId, but for users anonymity I won't
+		g_pLog->once("Skipping %u because it's a Denuvo game from someone else\n", appId);
+		return ret;
+	}
+
 	if (g_config.isAddedAppId(appId) || (g_config.playNotOwnedGames && !pOwnershipInfo->purchased))
 	{
-		//Changing the purchased field is enough, but just for nicety in the Steamclient UI we change the owner too
-		pOwnershipInfo->ownerSteamId = g_currentSteamId;
-		pOwnershipInfo->purchased = true;
+		if (!denuvoOwner || denuvoOwner == g_currentSteamId)
+		{
+			//Changing the purchased field is enough, but just for nicety in the Steamclient UI we change the owner too
+			pOwnershipInfo->ownerSteamId = g_currentSteamId;
+			pOwnershipInfo->familyShared = false;
+		}
+		else if (denuvoOwner)
+		{
+			pOwnershipInfo->ownerSteamId = denuvoOwner;
+			pOwnershipInfo->familyShared = true;
+		}
 
+		pOwnershipInfo->purchased = true;
 		//Unnessecary but whatever
 		pOwnershipInfo->permanent = true;
-		pOwnershipInfo->familyShared = false;
 
 		//Found in backtrace
 		pOwnershipInfo->releaseState = 4;
@@ -180,7 +204,7 @@ static bool hkCheckAppOwnership(void* a0, uint32_t appId, CAppOwnershipInfo* pOw
 
 	//Doing that might be not worth it since this will most likely be easier to mantain
 	//TODO: Backtrace those 4 calls and only patch the really necessary ones since this might be prone to breakage
-	if (g_config.disableFamilyLock && appIdOwnerOverride.count(appId) && appIdOwnerOverride.at(appId) < 4)
+	if (!denuvoOwner && g_config.disableFamilyLock && appIdOwnerOverride.count(appId) && appIdOwnerOverride.at(appId) < 4)
 	{
 		pOwnershipInfo->ownerSteamId = 1; //Setting to "arbitrary" steam Id instead of own, otherwise bypass won't work for own games
 		//Unnessecarry again, but whatever
@@ -384,6 +408,20 @@ static uint32_t hkClientUser_GetSubscribedApps(void* pClientUser, uint32_t* pApp
 	return count;
 }
 
+static bool hkClientUser_RequiresLegacyCDKey(void* pClientUser, uint32_t appId, uint32_t* a2)
+{
+	const bool requiresKey = Hooks::IClientUser_RequiresLegacyCDKey.tramp.fn(pClientUser, appId, a2);
+	g_pLog->once("IClientUser::RequiresLegacyCDKey(%p, %u, %u) -> %i\n", pClientUser, appId, a2, requiresKey);
+		
+	if (requiresKey && g_config.isAddedAppId(appId))
+	{
+		g_pLog->once("Disable CD Key for %u\n", appId);
+		return false;
+	}
+
+	return requiresKey;
+}
+
 static void patchRetn(lm_address_t address)
 {
 	constexpr lm_byte_t retn = 0xC3;
@@ -480,6 +518,7 @@ namespace Hooks
 	DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop("IClientApps::PipeLoop");
 	DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp("IClientUser::BIsSubscribedApp");
 	DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps("IClientUser::GetSubscribedApps");
+	DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey("IClientUser::RequiresLegacyCDKey");
 
 	VFTHook<IClientAppManager_BIsDlcEnabled_t> IClientAppManager_BIsDlcEnabled("IClientAppManager::BIsDlcEnabled");
 	VFTHook<IClientAppManager_LaunchApp_t> IClientAppManager_LaunchApp("IClientAppManager::LaunchApp");
@@ -496,8 +535,33 @@ bool Hooks::setup()
 
 	IClientUser_GetSteamId = MemHlp::searchSignature("IClientUser::GetSteamId", Patterns::GetSteamId, g_modSteamClient, MemHlp::SigFollowMode::Relative);
 
-	lm_address_t runningApp = MemHlp::searchSignature("RunningApp", Patterns::FamilyGroupRunningApp, g_modSteamClient, MemHlp::SigFollowMode::Relative);
-	lm_address_t stopPlayingBorrowedApp = MemHlp::searchSignature("StopPlayingBorrowedApp", Patterns::StopPlayingBorrowedApp, g_modSteamClient, MemHlp::SigFollowMode::PrologueUpwards);
+	lm_address_t runningApp = MemHlp::searchSignature("RnningApp", Patterns::FamilyGroupRunningApp, g_modSteamClient, MemHlp::SigFollowMode::Relative);
+
+	auto prologue = std::vector<lm_byte_t>({
+		0x56, 0x57, 0xe5, 0x89, 0x55
+	});
+	lm_address_t stopPlayingBorrowedApp = MemHlp::searchSignature
+	(
+		"StopPlayingBorrowedApp",
+		Patterns::StopPlayingBorrowedApp,
+		g_modSteamClient,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size()
+	);
+
+	//TODO: Make this shit less verbose in case I fail my reversing & refactor for all this crap
+	prologue = std::vector<lm_byte_t>({
+		0x53, 0x56, 0x57, 0x55
+	});
+	bool requiresLegacyCDKey = IClientUser_RequiresLegacyCDKey.setup
+	(
+		Patterns::RequiresLegacyCDKey,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size(),
+		&hkClientUser_RequiresLegacyCDKey
+	);
 
 	bool succeeded =
 		CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkCheckAppOwnership)
@@ -509,7 +573,9 @@ bool Hooks::setup()
 
 		&& runningApp != LM_ADDRESS_BAD
 		&& stopPlayingBorrowedApp != LM_ADDRESS_BAD
-		&& IClientUser_GetSteamId != LM_ADDRESS_BAD;
+		&& IClientUser_GetSteamId != LM_ADDRESS_BAD
+
+		&& requiresLegacyCDKey;
 
 	if (!succeeded)
 	{
@@ -538,6 +604,7 @@ void Hooks::place()
 	IClientAppManager_PipeLoop.place();
 	IClientUser_BIsSubscribedApp.place();
 	IClientUser_GetSubscribedApps.place();
+	IClientUser_RequiresLegacyCDKey.place();
 
 	createAndPlaceSteamIdHook();
 }
@@ -551,6 +618,7 @@ void Hooks::remove()
 	IClientAppManager_PipeLoop.remove();
 	IClientUser_BIsSubscribedApp.remove();
 	IClientUser_GetSubscribedApps.remove();
+	IClientUser_RequiresLegacyCDKey.remove();
 
 	//VFT Hooks
 	IClientAppManager_BIsDlcEnabled.remove();

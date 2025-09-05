@@ -18,7 +18,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static const char* EXPECTED_STEAMCLIENT_HASH = "4afd1749b93d962204208507f54c6210122c52e375dc36ef854a2f37223498e8";
+static const char* EXPECTED_STEAMCLIENT_HASH = "315a23cfed19ec81c7fb8647a82e333bd30ace7c7bc9d048adaa7ff2235fffae";
 
 static bool cleanEnvVar(const char* varName)
 {
@@ -172,7 +172,10 @@ static void load()
 		return;
 	}
 
-	g_pLog->notify("Loaded successfully");
+	if (g_config.notifyInit)
+	{
+		g_pLog->notify("Loaded successfully");
+	}
 }
 
 unsigned int la_version(unsigned int)
