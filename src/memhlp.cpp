@@ -4,7 +4,7 @@
 
 #include <vector>
 
-lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm_module_t module, SigFollowMode mode)
+lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm_module_t module, SigFollowMode mode, void* extraData, size_t extraDataSize)
 {
 	lm_address_t address = LM_SigScan(signature, module.base, module.size);
 	if (address == LM_ADDRESS_BAD)
@@ -22,7 +22,7 @@ lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm
 
 			case SigFollowMode::PrologueUpwards:
 				g_pLog->debug("Searching function prologue of %s from %p\n", name, address);
-				address = MemHlp::findPrologue(address);
+				address = MemHlp::findPrologue(address, static_cast<lm_byte_t*>(extraData), extraDataSize);
 				break;
 
 			default:
@@ -33,6 +33,11 @@ lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm
 	}
 
 	return address;
+}
+
+lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm_module_t module, SigFollowMode mode)
+{
+	return MemHlp::searchSignature(name, signature, module, mode, nullptr, 0);
 }
 
 lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm_module_t module)
@@ -57,18 +62,16 @@ lm_address_t MemHlp::getJmpTarget(lm_address_t address)
 	return std::stoul(inst.op_str, nullptr, 16);
 }
 
-lm_address_t MemHlp::findPrologue(lm_address_t address)
+lm_address_t MemHlp::findPrologue(lm_address_t address, lm_byte_t* prologueBytes, lm_size_t prologueSize)
 {
-	constexpr unsigned int scanSize = 0x1000; 
-	constexpr lm_byte_t bytes[] = { 0x56, 0x57, 0xe5, 0x89, 0x55 }; //Reverse order since we're searching upwards
-	constexpr lm_byte_t bytesSize = sizeof(bytes) / sizeof(bytes[0]);
+	constexpr unsigned int scanSize = 0x1000;
 
 	for(unsigned int i = 0u; i < scanSize; i++)
 	{
 		bool found = true;
-		for(unsigned int j = 0u; j < bytesSize; j++)
+		for(unsigned int j = 0u; j < prologueSize; j++)
 		{
-			if (*reinterpret_cast<lm_byte_t*>(address - i - j) != bytes[j])
+			if (*reinterpret_cast<lm_byte_t*>(address - i - j) != prologueBytes[j])
 			{
 				found = false;
 				break;
@@ -77,7 +80,7 @@ lm_address_t MemHlp::findPrologue(lm_address_t address)
 
 		if (found)
 		{
-			lm_address_t prol = address - i - bytesSize + 1; //Add 1 byte back since bytesSize would be to big otherwise
+			lm_address_t prol = address - i - prologueSize + 1; //Add 1 byte back since bytesSize would be to big otherwise
 			g_pLog->debug("Prologue found at %p\n", prol);
 			return prol;
 		}

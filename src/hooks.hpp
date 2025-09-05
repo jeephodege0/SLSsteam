@@ -44,6 +44,7 @@ public:
 	virtual void place();
 	virtual void remove();
 
+	bool setup(const char* pattern, const MemHlp::SigFollowMode followMode, lm_byte_t* extraData, lm_size_t extraDataSize, T hookFn);
 	bool setup(const char* pattern, const MemHlp::SigFollowMode followMode, T hookFn);
 };
 

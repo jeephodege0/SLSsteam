@@ -44,11 +44,11 @@ VFTHook<T>::VFTHook(const char* name) : Hook<T>::Hook(name)
 }
 
 template<typename T>
-bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, T hookFn)
+bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, lm_byte_t* extraData, lm_size_t extraDataSize, T hookFn)
 {
 	//Hardcoding g_modSteamClient here is definitely bad design, but we can easily change that
 	//in case we ever need to
-	lm_address_t oFn = MemHlp::searchSignature(this->name.c_str(), pattern, g_modSteamClient, followMode);
+	lm_address_t oFn = MemHlp::searchSignature(this->name.c_str(), pattern, g_modSteamClient, followMode, extraData, extraDataSize);
 	if (oFn == LM_ADDRESS_BAD)
 	{
 		return false;
@@ -58,6 +58,12 @@ bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode follo
 	this->hookFn.fn = hookFn;
 
 	return true;
+}
+
+template<typename T>
+bool DetourHook<T>::setup(const char* pattern, const MemHlp::SigFollowMode followMode, T hookFn)
+{
+	return setup(pattern, followMode, nullptr, 0, hookFn);
 }
 
 template<typename T>
@@ -514,8 +520,21 @@ bool Hooks::setup()
 
 	IClientUser_GetSteamId = MemHlp::searchSignature("IClientUser::GetSteamId", Patterns::GetSteamId, g_modSteamClient, MemHlp::SigFollowMode::Relative);
 
-	lm_address_t runningApp = MemHlp::searchSignature("RunningApp", Patterns::FamilyGroupRunningApp, g_modSteamClient, MemHlp::SigFollowMode::Relative);
-	lm_address_t stopPlayingBorrowedApp = MemHlp::searchSignature("StopPlayingBorrowedApp", Patterns::StopPlayingBorrowedApp, g_modSteamClient, MemHlp::SigFollowMode::PrologueUpwards);
+	lm_address_t runningApp = MemHlp::searchSignature("RnningApp", Patterns::FamilyGroupRunningApp, g_modSteamClient, MemHlp::SigFollowMode::Relative);
+
+	auto prologue = std::vector<lm_byte_t>({
+		0x56, 0x57, 0xe5, 0x89, 0x55
+	});
+	lm_address_t stopPlayingBorrowedApp = MemHlp::searchSignature
+	(
+		"StopPlayingBorrowedApp",
+		Patterns::StopPlayingBorrowedApp,
+		g_modSteamClient,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size()
+	);
+
 
 	bool succeeded =
 		CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkCheckAppOwnership)
