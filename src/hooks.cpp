@@ -408,6 +408,20 @@ static uint32_t hkClientUser_GetSubscribedApps(void* pClientUser, uint32_t* pApp
 	return count;
 }
 
+static bool hkClientUser_RequiresLegacyCDKey(void* pClientUser, uint32_t appId, uint32_t* a2)
+{
+	const bool requiresKey = Hooks::IClientUser_RequiresLegacyCDKey.tramp.fn(pClientUser, appId, a2);
+	g_pLog->once("IClientUser::RequiresLegacyCDKey(%p, %u, %u) -> %i\n", pClientUser, appId, a2, requiresKey);
+		
+	if (requiresKey && g_config.isAddedAppId(appId))
+	{
+		g_pLog->once("Disable CD Key for %u\n", appId);
+		return false;
+	}
+
+	return requiresKey;
+}
+
 static void patchRetn(lm_address_t address)
 {
 	constexpr lm_byte_t retn = 0xC3;
@@ -504,6 +518,7 @@ namespace Hooks
 	DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop("IClientApps::PipeLoop");
 	DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp("IClientUser::BIsSubscribedApp");
 	DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps("IClientUser::GetSubscribedApps");
+	DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey("IClientUser::RequiresLegacyCDKey");
 
 	VFTHook<IClientAppManager_BIsDlcEnabled_t> IClientAppManager_BIsDlcEnabled("IClientAppManager::BIsDlcEnabled");
 	VFTHook<IClientAppManager_LaunchApp_t> IClientAppManager_LaunchApp("IClientAppManager::LaunchApp");
@@ -535,6 +550,18 @@ bool Hooks::setup()
 		prologue.size()
 	);
 
+	//TODO: Make this shit less verbose in case I fail my reversing & refactor for all this crap
+	prologue = std::vector<lm_byte_t>({
+		0x53, 0x56, 0x57, 0x55
+	});
+	bool requiresLegacyCDKey = IClientUser_RequiresLegacyCDKey.setup
+	(
+		Patterns::RequiresLegacyCDKey,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size(),
+		&hkClientUser_RequiresLegacyCDKey
+	);
 
 	bool succeeded =
 		CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkCheckAppOwnership)
@@ -546,7 +573,9 @@ bool Hooks::setup()
 
 		&& runningApp != LM_ADDRESS_BAD
 		&& stopPlayingBorrowedApp != LM_ADDRESS_BAD
-		&& IClientUser_GetSteamId != LM_ADDRESS_BAD;
+		&& IClientUser_GetSteamId != LM_ADDRESS_BAD
+
+		&& requiresLegacyCDKey;
 
 	if (!succeeded)
 	{
@@ -575,6 +604,7 @@ void Hooks::place()
 	IClientAppManager_PipeLoop.place();
 	IClientUser_BIsSubscribedApp.place();
 	IClientUser_GetSubscribedApps.place();
+	IClientUser_RequiresLegacyCDKey.place();
 
 	createAndPlaceSteamIdHook();
 }
@@ -588,6 +618,7 @@ void Hooks::remove()
 	IClientAppManager_PipeLoop.remove();
 	IClientUser_BIsSubscribedApp.remove();
 	IClientUser_GetSubscribedApps.remove();
+	IClientUser_RequiresLegacyCDKey.remove();
 
 	//VFT Hooks
 	IClientAppManager_BIsDlcEnabled.remove();

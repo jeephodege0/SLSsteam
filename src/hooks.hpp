@@ -72,6 +72,7 @@ namespace Hooks
 	typedef void(*IClientApps_PipeLoop_t)(void*, void*, void*, void*);
 	typedef bool(*IClientUser_BIsSubscribedApp_t)(void*, uint32_t);
 	typedef uint32_t(*IClientUser_GetSubscribedApps_t)(void*, uint32_t*, size_t, bool);
+	typedef bool(*IClientUser_RequiresLegacyCDKey_t)(void*, uint32_t, uint32_t*);
 
 	extern DetourHook<LogSteamPipeCall_t> LogSteamPipeCall;
 	extern DetourHook<CheckAppOwnership_t> CheckAppOwnership;
@@ -79,6 +80,7 @@ namespace Hooks
 	extern DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop;
 	extern DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp;
 	extern DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps;
+	extern DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey;
 
 	typedef bool(*IClientAppManager_BIsDlcEnabled_t)(void*, uint32_t, uint32_t, void*);
 	typedef void*(*IClientAppManager_LaunchApp_t)(void*, uint32_t*, void*, void*, void*);
