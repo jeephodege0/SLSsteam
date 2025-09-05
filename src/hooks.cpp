@@ -282,20 +282,6 @@ static bool hkClientAppManager_BIsDlcEnabled(void* pClientAppManager, uint32_t a
 	return true;
 }
 
-static EAppState hkClientAppManager_GetAppInstallState(void* pClientAppManager, uint32_t appId)
-{
-	EAppState ret = Hooks::IClientAppManager_GetAppInstallState.originalFn.fn(pClientAppManager, appId);
-	g_pLog->once("IClientAppManager::GetAppInstallState(%u) -> %u\n", appId, ret);
-
-	if (ret & APPSTATE_INSTALLED && (g_config.isAddedAppId(appId) || g_config.getDenuvoGameOwner(appId)))
-	{
-		g_pLog->once("Spoof %u as installed to prevent updating\n", appId);
-		return APPSTATE_INSTALLED;
-	}
-
-	return ret;
-}
-
 __attribute__((hot))
 static void hkClientAppManager_PipeLoop(void* pClientAppManager, void* a1, void* a2, void* a3)
 {
@@ -305,12 +291,10 @@ static void hkClientAppManager_PipeLoop(void* pClientAppManager, void* a1, void*
 	LM_VmtNew(*reinterpret_cast<lm_address_t**>(pClientAppManager), vft.get());
 
 	Hooks::IClientAppManager_BIsDlcEnabled.setup(vft, VFTIndexes::IClientAppManager::BIsDlcEnabled, hkClientAppManager_BIsDlcEnabled);
-	Hooks::IClientAppManager_GetAppInstallState.setup(vft, VFTIndexes::IClientAppManager::GetAppInstallState, hkClientAppManager_GetAppInstallState);
 	Hooks::IClientAppManager_LaunchApp.setup(vft, VFTIndexes::IClientAppManager::LaunchApp, hkClientAppManager_LaunchApp);
 	Hooks::IClientAppManager_IsAppDlcInstalled.setup(vft, VFTIndexes::IClientAppManager::IsAppDlcInstalled, hkClientAppManager_IsAppDlcInstalled);
 
 	Hooks::IClientAppManager_BIsDlcEnabled.place();
-	Hooks::IClientAppManager_GetAppInstallState.place();
 	Hooks::IClientAppManager_LaunchApp.place();
 	Hooks::IClientAppManager_IsAppDlcInstalled.place();
 
@@ -516,7 +500,6 @@ namespace Hooks
 	DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps("IClientUser::GetSubscribedApps");
 
 	VFTHook<IClientAppManager_BIsDlcEnabled_t> IClientAppManager_BIsDlcEnabled("IClientAppManager::BIsDlcEnabled");
-	VFTHook<IClientAppManager_GetAppInstallState_t> IClientAppManager_GetAppInstallState("IClientAppManager::GetAppInstallState");
 	VFTHook<IClientAppManager_LaunchApp_t> IClientAppManager_LaunchApp("IClientAppManager::LaunchApp");
 	VFTHook<IClientAppManager_IsAppDlcInstalled_t> IClientAppManager_IsAppDlcInstalled("IClientAppManager::IsAppDlcInstalled");
 	VFTHook<IClientApps_GetDLCDataByIndex_t> IClientApps_GetDLCDataByIndex("IClientApps::GetDLCDataByIndex");
