@@ -68,8 +68,11 @@ namespace Hooks
 {
 	typedef void(*LogSteamPipeCall_t)(const char*, const char*);
 	typedef bool(*CheckAppOwnership_t)(void*, uint32_t, CAppOwnershipInfo*);
+
 	typedef void(*IClientAppManager_PipeLoop_t)(void*, void*, void*, void*);
 	typedef void(*IClientApps_PipeLoop_t)(void*, void*, void*, void*);
+	typedef void(*IClientRemoteStorage_PipeLoop_t)(void*, void*, void*, void*);
+
 	typedef bool(*IClientUser_BIsSubscribedApp_t)(void*, uint32_t);
 	typedef uint32_t(*IClientUser_GetSubscribedApps_t)(void*, uint32_t*, size_t, bool);
 	typedef bool(*IClientUser_RequiresLegacyCDKey_t)(void*, uint32_t, uint32_t*);
@@ -78,6 +81,8 @@ namespace Hooks
 	extern DetourHook<CheckAppOwnership_t> CheckAppOwnership;
 	extern DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop;
 	extern DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop;
+	extern DetourHook<IClientRemoteStorage_PipeLoop_t> IClientRemoteStorage_PipeLoop;
+
 	extern DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp;
 	extern DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps;
 	extern DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey;
@@ -87,12 +92,16 @@ namespace Hooks
 	typedef bool(*IClientAppManager_IsAppDlcInstalled_t)(void*, uint32_t, uint32_t);
 	typedef unsigned int(*IClientApps_GetDLCCount_t)(void*, uint32_t);
 	typedef bool(*IClientApps_GetDLCDataByIndex_t)(void*, uint32_t, int, uint32_t*, bool*, char*, size_t);
+	typedef bool(*IClientRemoteStorage_IsCloudEnabledForApp_t)(void*, uint32_t);
 
 	extern VFTHook<IClientAppManager_BIsDlcEnabled_t> IClientAppManager_BIsDlcEnabled;
 	extern VFTHook<IClientAppManager_LaunchApp_t> IClientAppManager_LaunchApp;
 	extern VFTHook<IClientAppManager_IsAppDlcInstalled_t> IClientAppManager_IsAppDlcInstalled;
+
 	extern VFTHook<IClientApps_GetDLCDataByIndex_t> IClientApps_GetDLCDataByIndex;
 	extern VFTHook<IClientApps_GetDLCCount_t> IClientApps_GetDLCCount;
+
+	extern VFTHook<IClientRemoteStorage_IsCloudEnabledForApp_t> IClientRemoteStorage_IsCloudEnabledForApp;
 
 	extern lm_address_t IClientUser_GetSteamId;
 

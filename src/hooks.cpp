@@ -374,6 +374,34 @@ static void hkClientApps_PipeLoop(void* pClientApps, void* a1, void* a2, void* a
 	Hooks::IClientApps_PipeLoop.originalFn.fn(pClientApps, a1, a2, a3);
 }
 
+static bool hkClientRemoteStorage_IsCloudEnabledForApp(void* pClientRemoteStorage, uint32_t appId)
+{
+	const bool enabled = Hooks::IClientRemoteStorage_IsCloudEnabledForApp.originalFn.fn(pClientRemoteStorage, appId);
+	g_pLog->once("IClientRemoteStorage::IsCloudEnabledForApp(%p, %u, %u) -> %i\n", pClientRemoteStorage, appId);
+
+	if (g_config.isAddedAppId(appId))
+	{
+		g_pLog->once("Disabled cloud for %u\n", appId);
+		return false;
+	}
+
+	return enabled;
+}
+
+static void hkClientRemoteStorage_PipeLoop(void* pClientRemoteStorage, void* a1, void* a2, void* a3)
+{
+	std::shared_ptr<lm_vmt_t> vft = std::make_shared<lm_vmt_t>();
+	LM_VmtNew(*reinterpret_cast<lm_address_t**>(pClientRemoteStorage), vft.get());
+
+	Hooks::IClientRemoteStorage_IsCloudEnabledForApp.setup(vft, VFTIndexes::IClientRemoteStorage::IsCloudEnabledForApp, hkClientRemoteStorage_IsCloudEnabledForApp);
+	Hooks::IClientRemoteStorage_IsCloudEnabledForApp.place();
+
+	g_pLog->debug("IClientRemoteStorage->vft at %p\n", vft->vtable);
+
+	Hooks::IClientRemoteStorage_PipeLoop.remove();
+	Hooks::IClientRemoteStorage_PipeLoop.originalFn.fn(pClientRemoteStorage, a1, a2, a3);
+}
+
 static bool hkClientUser_BIsSubscribedApp(void* pClientUser, uint32_t appId)
 {
 	const bool ret = Hooks::IClientUser_BIsSubscribedApp.tramp.fn(pClientUser, appId);
@@ -516,6 +544,8 @@ namespace Hooks
 	DetourHook<CheckAppOwnership_t> CheckAppOwnership("CheckAppOwnership");
 	DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop("IClientAppManager::PipeLoop");
 	DetourHook<IClientApps_PipeLoop_t> IClientApps_PipeLoop("IClientApps::PipeLoop");
+	DetourHook<IClientRemoteStorage_PipeLoop_t> IClientRemoteStorage_PipeLoop("IClientRemoteStorage::PipeLoop");
+
 	DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp("IClientUser::BIsSubscribedApp");
 	DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps("IClientUser::GetSubscribedApps");
 	DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey("IClientUser::RequiresLegacyCDKey");
@@ -523,8 +553,11 @@ namespace Hooks
 	VFTHook<IClientAppManager_BIsDlcEnabled_t> IClientAppManager_BIsDlcEnabled("IClientAppManager::BIsDlcEnabled");
 	VFTHook<IClientAppManager_LaunchApp_t> IClientAppManager_LaunchApp("IClientAppManager::LaunchApp");
 	VFTHook<IClientAppManager_IsAppDlcInstalled_t> IClientAppManager_IsAppDlcInstalled("IClientAppManager::IsAppDlcInstalled");
+
 	VFTHook<IClientApps_GetDLCDataByIndex_t> IClientApps_GetDLCDataByIndex("IClientApps::GetDLCDataByIndex");
 	VFTHook<IClientApps_GetDLCCount_t> IClientApps_GetDLCCount("IClientApps::GetDLCCount");
+
+	VFTHook<IClientRemoteStorage_IsCloudEnabledForApp_t> IClientRemoteStorage_IsCloudEnabledForApp("IClientRemoteStorage::IsCloudEnabledForApp");
 
 	lm_address_t IClientUser_GetSteamId;
 }
@@ -568,6 +601,7 @@ bool Hooks::setup()
 		&& LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, MemHlp::SigFollowMode::Relative, &hkLogSteamPipeCall)
 		&& IClientApps_PipeLoop.setup(Patterns::IClientApps_PipeLoop, MemHlp::SigFollowMode::Relative, &hkClientApps_PipeLoop)
 		&& IClientAppManager_PipeLoop.setup(Patterns::IClientAppManager_PipeLoop, MemHlp::SigFollowMode::Relative, &hkClientAppManager_PipeLoop)
+		&& IClientRemoteStorage_PipeLoop.setup(Patterns::IClientRemoteStorage_PipeLoop, MemHlp::SigFollowMode::Relative, &hkClientRemoteStorage_PipeLoop)
 		&& IClientUser_BIsSubscribedApp.setup(Patterns::IsSubscribedApp, MemHlp::SigFollowMode::Relative, &hkClientUser_BIsSubscribedApp)
 		&& IClientUser_GetSubscribedApps.setup(Patterns::GetSubscribedApps, MemHlp::SigFollowMode::Relative, &hkClientUser_GetSubscribedApps)
 
@@ -602,6 +636,7 @@ void Hooks::place()
 	LogSteamPipeCall.place();
 	IClientApps_PipeLoop.place();
 	IClientAppManager_PipeLoop.place();
+	IClientRemoteStorage_PipeLoop.place();
 	IClientUser_BIsSubscribedApp.place();
 	IClientUser_GetSubscribedApps.place();
 	IClientUser_RequiresLegacyCDKey.place();
@@ -616,6 +651,7 @@ void Hooks::remove()
 	LogSteamPipeCall.remove();
 	IClientApps_PipeLoop.remove();
 	IClientAppManager_PipeLoop.remove();
+	IClientRemoteStorage_PipeLoop.remove();
 	IClientUser_BIsSubscribedApp.remove();
 	IClientUser_GetSubscribedApps.remove();
 	IClientUser_RequiresLegacyCDKey.remove();
