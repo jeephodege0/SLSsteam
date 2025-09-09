@@ -2,16 +2,15 @@
 
 namespace VFTIndexes
 {
-	namespace IClientUser
-	{
-		constexpr int GetSteamID = 10;
-	}
 	namespace IClientApps
 	{
+		constexpr int RequestAppInfoUpdate = 7;
 		constexpr int GetDLCCount = 8;
 		constexpr int GetDLCDataByIndex = 9;
 		constexpr int GetAppType = 10;
+		constexpr int GetUpdateInfo = 20;
 	}
+
 	namespace IClientAppManager
 	{
 		constexpr int InstallApp = 0;
