@@ -21,4 +21,14 @@ namespace VFTIndexes
 		constexpr int IsAppDlcInstalled = 9;
 		constexpr int BIsDlcEnabled = 11;
 	}
+
+	namespace IClientRemoteStorage
+	{
+		constexpr int IsCloudEnabledForApp = 24;
+	}
+
+	namespace IClientUser
+	{
+		constexpr int GetSteamID = 10;
+	}
 }
