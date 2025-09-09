@@ -377,7 +377,7 @@ static void hkClientApps_PipeLoop(void* pClientApps, void* a1, void* a2, void* a
 static bool hkClientRemoteStorage_IsCloudEnabledForApp(void* pClientRemoteStorage, uint32_t appId)
 {
 	const bool enabled = Hooks::IClientRemoteStorage_IsCloudEnabledForApp.originalFn.fn(pClientRemoteStorage, appId);
-	g_pLog->once("IClientRemoteStorage::IsCloudEnabledForApp(%p, %u, %u) -> %i\n", pClientRemoteStorage, appId);
+	g_pLog->once("IClientRemoteStorage::IsCloudEnabledForApp(%p, %u) -> %i\n", pClientRemoteStorage, appId);
 
 	if (g_config.isAddedAppId(appId))
 	{
