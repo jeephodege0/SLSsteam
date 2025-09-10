@@ -120,7 +120,8 @@ static void setup()
 	g_pLog->debug("SLSsteam loading in %s\n", proc.name);
 
 	cleanEnvVar("LD_AUDIT");
-	cleanEnvVar("LD_PRELOAD");
+	//TODO: Investigate weird logging. Not like it's necessary anymore
+	//cleanEnvVar("LD_PRELOAD");
 
 	if(!g_config.init())
 	{
