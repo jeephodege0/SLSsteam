@@ -583,6 +583,34 @@ bool Hooks::setup()
 		prologue.size()
 	);
 
+	//TODO: Automate these
+	bool clientApps_PipeLoop = IClientApps_PipeLoop.setup
+	(
+		Patterns::IClientApps_PipeLoop,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size(),
+		&hkClientApps_PipeLoop
+	);
+
+	bool clientAppManager_PipeLoop = IClientAppManager_PipeLoop.setup
+	(
+		Patterns::IClientAppManager_PipeLoop,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size(),
+		&hkClientAppManager_PipeLoop
+	);
+
+	bool clientRemoteStorage_PipeLoop = IClientRemoteStorage_PipeLoop.setup
+	(
+		Patterns::IClientRemoteStorage_PipeLoop,
+		MemHlp::SigFollowMode::PrologueUpwards,
+		&prologue[0],
+		prologue.size(),
+		&hkClientRemoteStorage_PipeLoop
+	);
+
 	//TODO: Make this shit less verbose in case I fail my reversing & refactor for all this crap
 	prologue = std::vector<lm_byte_t>({
 		0x53, 0x56, 0x57, 0x55
@@ -599,9 +627,6 @@ bool Hooks::setup()
 	bool succeeded =
 		CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkCheckAppOwnership)
 		&& LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, MemHlp::SigFollowMode::Relative, &hkLogSteamPipeCall)
-		&& IClientApps_PipeLoop.setup(Patterns::IClientApps_PipeLoop, MemHlp::SigFollowMode::Relative, &hkClientApps_PipeLoop)
-		&& IClientAppManager_PipeLoop.setup(Patterns::IClientAppManager_PipeLoop, MemHlp::SigFollowMode::Relative, &hkClientAppManager_PipeLoop)
-		&& IClientRemoteStorage_PipeLoop.setup(Patterns::IClientRemoteStorage_PipeLoop, MemHlp::SigFollowMode::Relative, &hkClientRemoteStorage_PipeLoop)
 		&& IClientUser_BIsSubscribedApp.setup(Patterns::IsSubscribedApp, MemHlp::SigFollowMode::Relative, &hkClientUser_BIsSubscribedApp)
 		&& IClientUser_GetSubscribedApps.setup(Patterns::GetSubscribedApps, MemHlp::SigFollowMode::Relative, &hkClientUser_GetSubscribedApps)
 
@@ -609,6 +634,9 @@ bool Hooks::setup()
 		&& stopPlayingBorrowedApp != LM_ADDRESS_BAD
 		&& IClientUser_GetSteamId != LM_ADDRESS_BAD
 
+		&& clientApps_PipeLoop
+		&& clientAppManager_PipeLoop
+		&& clientRemoteStorage_PipeLoop
 		&& requiresLegacyCDKey;
 
 	if (!succeeded)
