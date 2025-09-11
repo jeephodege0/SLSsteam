@@ -29,7 +29,7 @@ Comment[uk]=Програма для керування іграми та зап�
 Comment[vi]=Ứng dụng để quản lý và chơi trò chơi trên Steam
 Exec=/usr/bin/env LD_AUDIT="/usr/lib32/libSLSsteam.so" /usr/bin/steam %U
 StartupWMClass=Steam
-Icon=steam
+Icon=SLSsteam
 Terminal=false
 Type=Application
 Categories=Network;FileTransfer;Game;
