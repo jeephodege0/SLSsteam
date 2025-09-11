@@ -288,6 +288,20 @@ static bool hkClientAppManager_BIsDlcEnabled(void* pClientAppManager, uint32_t a
 	return true;
 }
 
+static bool hkClientAppManager_GetUpdateInfo(void* pClientAppManager, uint32_t appId, uint32_t* a2)
+{
+	const bool success = Hooks::IClientAppManager_GetAppUpdateInfo.originalFn.fn(pClientAppManager, appId, a2);
+	g_pLog->info("IClientAppManager::GetUpdateInfo(%p, %u, %p) -> %i\n", pClientAppManager, appId, a2, success);
+
+	if (g_config.isAddedAppId(appId))
+	{
+		g_pLog->once("Disabled updates for %u\n", appId);
+		return false;
+	}
+
+	return success;
+}
+
 __attribute__((hot))
 static void hkClientAppManager_PipeLoop(void* pClientAppManager, void* a1, void* a2, void* a3)
 {
@@ -297,10 +311,12 @@ static void hkClientAppManager_PipeLoop(void* pClientAppManager, void* a1, void*
 	LM_VmtNew(*reinterpret_cast<lm_address_t**>(pClientAppManager), vft.get());
 
 	Hooks::IClientAppManager_BIsDlcEnabled.setup(vft, VFTIndexes::IClientAppManager::BIsDlcEnabled, hkClientAppManager_BIsDlcEnabled);
+	Hooks::IClientAppManager_GetAppUpdateInfo.setup(vft, VFTIndexes::IClientAppManager::GetUpdateInfo, hkClientAppManager_GetUpdateInfo);
 	Hooks::IClientAppManager_LaunchApp.setup(vft, VFTIndexes::IClientAppManager::LaunchApp, hkClientAppManager_LaunchApp);
 	Hooks::IClientAppManager_IsAppDlcInstalled.setup(vft, VFTIndexes::IClientAppManager::IsAppDlcInstalled, hkClientAppManager_IsAppDlcInstalled);
 
 	Hooks::IClientAppManager_BIsDlcEnabled.place();
+	Hooks::IClientAppManager_GetAppUpdateInfo.place();
 	Hooks::IClientAppManager_LaunchApp.place();
 	Hooks::IClientAppManager_IsAppDlcInstalled.place();
 
@@ -551,6 +567,7 @@ namespace Hooks
 	DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey("IClientUser::RequiresLegacyCDKey");
 
 	VFTHook<IClientAppManager_BIsDlcEnabled_t> IClientAppManager_BIsDlcEnabled("IClientAppManager::BIsDlcEnabled");
+	VFTHook<IClientAppManager_GetAppUpdateInfo_t> IClientAppManager_GetAppUpdateInfo("IClientAppManager::GetAppUpdateInfo");
 	VFTHook<IClientAppManager_LaunchApp_t> IClientAppManager_LaunchApp("IClientAppManager::LaunchApp");
 	VFTHook<IClientAppManager_IsAppDlcInstalled_t> IClientAppManager_IsAppDlcInstalled("IClientAppManager::IsAppDlcInstalled");
 
@@ -686,8 +703,10 @@ void Hooks::remove()
 
 	//VFT Hooks
 	IClientAppManager_BIsDlcEnabled.remove();
+	IClientAppManager_GetAppUpdateInfo.remove();
 	IClientAppManager_LaunchApp.remove();
 	IClientAppManager_IsAppDlcInstalled.remove();
+
 	IClientApps_GetDLCDataByIndex.remove();
 	
 	if (hkGetSteamId != LM_ADDRESS_BAD)
