@@ -708,6 +708,9 @@ void Hooks::remove()
 	IClientAppManager_IsAppDlcInstalled.remove();
 
 	IClientApps_GetDLCDataByIndex.remove();
+	IClientApps_GetDLCCount.remove();
+
+	IClientRemoteStorage_IsCloudEnabledForApp.remove();
 	
 	if (hkGetSteamId != LM_ADDRESS_BAD)
 	{
