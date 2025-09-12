@@ -1,4 +1,5 @@
 # **SLSsteam - Steamclient Modification for Linux**
+![](https://github.com/AceSLS/SLSsteam/blob/dev/res/banner.png?raw=true "SLSsteam")
 
 ## Index
 
