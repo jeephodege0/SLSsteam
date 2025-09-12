@@ -108,18 +108,16 @@ Afterwards run the installer again if that's what you've been using to launch SL
 
 ## Credits
 
-- Special thanks to all the staff members of the Anti Denuvo Sanctuary
-  for all the hard work they do. They also found a way to use SLSsteam
-  I didn't even intend to, so shoutout to them
+Contributors:
+- [amione](https://github.com/xamionex/): Creating the SLSsteam banner & logo the instant he found out I was looking around for one <3
 - [DeveloperMikey](https://github.com/DeveloperMikey): Added Nix support 
-- Riku_Wayfinder: Being extremely supportive and lightening my workload by a lot.
-  So show him some love my guys <3
 - thismanq: Informing me that DisableFamilyShareLockForOthers is possible
-- Gnanf: Helping me test the Family Sharing bypass
-- rdbo: For his great libmem library, which saved me a
-  lot of development and learning time
-- oleavr and all the other awesome people working on Frida
-  for easy instrumentation which helps a lot in analyzing, testing and debugging
-- All the folks working on Ghidra,
-  this was my first project using it and I'm in love with it!
 
+Others:
+- All the staff members of the Anti Denuvo Sanctuary for all their hard work they do. They also found a way to use SLSsteam I didn't even intend to, so shoutout to them
+- Riku_Wayfinder: Being extremely supportive and lightening my workload by a lot. So show him some love my guys <3
+- Gnanf: Helping me test the Family Sharing bypass
+- rdbo: For his great libmem library, which saved me a lot of development and learning time
+- oleavr and all the other awesome people working on Frida for easy instrumentation which helps a lot in analyzing, testing and debugging
+- All the folks working on Ghidra, this was my first project using it and I'm in love with it!
+- And many more I can't possibly list here for reporting bugs and giving feedback! Thank you guys <3
