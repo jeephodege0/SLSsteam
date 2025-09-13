@@ -8,7 +8,6 @@ namespace VFTIndexes
 		constexpr int GetDLCCount = 8;
 		constexpr int GetDLCDataByIndex = 9;
 		constexpr int GetAppType = 10;
-		constexpr int GetUpdateInfo = 20;
 	}
 
 	namespace IClientAppManager
@@ -19,6 +18,7 @@ namespace VFTIndexes
 		constexpr int GetAppInstallState = 4;
 		constexpr int IsAppDlcInstalled = 9;
 		constexpr int BIsDlcEnabled = 11;
+		constexpr int GetUpdateInfo = 20;
 	}
 
 	namespace IClientRemoteStorage

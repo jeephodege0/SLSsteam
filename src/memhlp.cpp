@@ -64,7 +64,7 @@ lm_address_t MemHlp::getJmpTarget(lm_address_t address)
 
 lm_address_t MemHlp::findPrologue(lm_address_t address, lm_byte_t* prologueBytes, lm_size_t prologueSize)
 {
-	constexpr unsigned int scanSize = 0x1000;
+	constexpr unsigned int scanSize = 0x10000;
 
 	for(unsigned int i = 0u; i < scanSize; i++)
 	{

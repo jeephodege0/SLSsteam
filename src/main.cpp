@@ -6,6 +6,7 @@
 
 #include "libmem/libmem.h"
 
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -18,7 +19,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-static const char* EXPECTED_STEAMCLIENT_HASH = "da57baf0a7c6dfa3812350fc79b4763087c5dcc80ff966b1c36fc2f6edef8eb5";
+static const char* EXPECTED_STEAMCLIENT_HASH = "91b60769f5b05971144adbc02a584efa706817a4191d06d535ebab484f326c2d";
 
 static bool cleanEnvVar(const char* varName)
 {
@@ -175,7 +176,18 @@ static void load()
 
 	if (g_config.notifyInit)
 	{
-		g_pLog->notify("Loaded successfully");
+		const auto now = std::chrono::time_point{std::chrono::system_clock::now()};
+		const auto ymd = std::chrono::year_month_day{std::chrono::floor<std::chrono::days>(now)};
+
+		//Funsy easter egg :)
+		if (static_cast<unsigned int>(ymd.month()) == 2 && static_cast<unsigned int>(ymd.day()) == 22)
+		{
+			g_pLog->notify("Happy birthday SLSsteam!");
+		}
+		else
+		{
+			g_pLog->notify("Loaded successfully");
+		}
 	}
 }
 
