@@ -6,17 +6,18 @@ pkgdesc="Steamclient Mod"
 arch=("i686" "x86_64")
 url="https://github.com/AceSLS/SLSsteam"
 license=("AGPL-3.0-only")
-makedepends=("gcc")
+
 depends=("steam"
-	"lib32-openssl"
-	"lib32-glibc"
-	"lib32-gcc-libs")
-optdepends=("steam-native"
-			"ccache")
+		"lib32-openssl"
+		"lib32-glibc"
+		"lib32-gcc-libs")
+
+optdepends=("steam-native")
 
 provides=("slssteam")
 
 source=("https://github.com/AceSLS/SLSsteam/archive/refs/tags/$pkgver.tar.gz")
+makedepends=("gcc")
 
 sha256sums=("0c99378030d7e237274c9acf227b86068d603c187bfda78053622de6ec2be7a8")
 validpgpkeys=("63AB8F4BF8A62EEEB8D8C7584410F8CF7129B2D6")

@@ -2,13 +2,10 @@
 pkgname="slssteam-git"
 pkgver=20250913230205
 pkgrel=1
-pkgdesc="Steamclient Mod"
+pkgdesc="Steamclient Mod - Pre release"
 arch=("i686" "x86_64")
 url="https://github.com/AceSLS/SLSsteam"
 license=("AGPL-3.0-only")
-
-makedepends=("git"
-			"gcc")
 
 depends=("steam"
 		"lib32-openssl"
@@ -20,7 +17,10 @@ optdepends=("steam-native"
 
 provides=("slssteam")
 
+
 source=("git+$url#branch=dev")
+makedepends=("git"
+			"gcc")
 
 sha256sums=('SKIP')
 validpgpkeys=("63AB8F4BF8A62EEEB8D8C7584410F8CF7129B2D6")
