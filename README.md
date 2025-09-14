@@ -38,12 +38,21 @@ Configuration gets created at ~/.config/SLSsteam/config.yaml during first run
 
 ## Installation and Uninstallation
 
+### Any distro:
+
 ```bash
 ./setup.sh install
 ./setup.sh uninstall
 ```
 
-## NixOS
+### Arch Linux:
+
+Download latest SLSsteam-Arch.pkg.tar.zst then run:
+```bash
+sudo pacman -U SLSsteam-Arch*.pkg.tar.zst
+```
+
+### NixOS:
 
 Add this to your flake inputs
 
