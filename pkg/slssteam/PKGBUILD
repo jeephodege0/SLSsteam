@@ -1,0 +1,36 @@
+# Maintainer: Ace! _SL/S <acesls@protonmail.com>
+pkgname="slssteam"
+pkgver=20250913230205
+pkgrel=1
+pkgdesc="Steamclient Mod"
+arch=("i686" "x86_64")
+url="https://github.com/AceSLS/SLSsteam"
+license=("AGPL-3.0-only")
+makedepends=("gcc")
+depends=("steam"
+	"lib32-openssl"
+	"lib32-glibc"
+	"lib32-gcc-libs")
+optdepends=("steam-native"
+			"ccache")
+
+provides=("slssteam")
+
+source=("https://github.com/AceSLS/SLSsteam/archive/refs/tags/$pkgver.tar.gz")
+
+sha256sums=("0c99378030d7e237274c9acf227b86068d603c187bfda78053622de6ec2be7a8")
+validpgpkeys=("63AB8F4BF8A62EEEB8D8C7584410F8CF7129B2D6")
+
+build() {
+	cd "$srcdir/SLSsteam-$pkgver"
+	make
+}
+
+package() {
+	cd "$pkgdir"
+
+	install -D "$srcdir/SLSsteam-$pkgver/bin/SLSsteam.so" "$pkgdir/usr/lib32/libSLSsteam.so"
+	install -D "$srcdir/SLSsteam-$pkgver/res/SLSsteam.desktop" "$pkgdir/usr/share/applications/SLSsteam.desktop"
+	install -D "$srcdir/SLSsteam-$pkgver/res/SLSsteam-native.desktop" "$pkgdir/usr/share/applications/SLSsteam-native.desktop"
+	install -D "$srcdir/SLSsteam-$pkgver/res/logo.png" "$pkgdir/usr/share/pixmaps/SLSsteam.png"
+}
