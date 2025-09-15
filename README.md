@@ -49,7 +49,7 @@ Configuration gets created at ~/.config/SLSsteam/config.yaml during first run
 
 Download latest SLSsteam-Arch.pkg.tar.zst then run:
 ```bash
-sudo pacman -U SLSsteam-Arch*.pkg.tar.zst
+sudo pacman -U SLSsteam-Arch.pkg.tar.zst
 ```
 
 ### NixOS:
