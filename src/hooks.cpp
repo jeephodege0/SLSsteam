@@ -572,6 +572,7 @@ static bool createAndPlaceSteamIdHook()
 
 namespace Hooks
 {
+	//TODO: Replace logging in hooks with Hook::name
 	DetourHook<LogSteamPipeCall_t> LogSteamPipeCall("LogSteamPipeCall");
 	DetourHook<CheckAppOwnership_t> CheckAppOwnership("CheckAppOwnership");
 	DetourHook<IClientAppManager_PipeLoop_t> IClientAppManager_PipeLoop("IClientAppManager::PipeLoop");
@@ -732,6 +733,7 @@ void Hooks::remove()
 
 	IClientRemoteStorage_IsCloudEnabledForApp.remove();
 	
+	//TODO: Remove jmp
 	if (hkGetSteamId != LM_ADDRESS_BAD)
 	{
 		LM_FreeMemory(hkGetSteamId, 0);
