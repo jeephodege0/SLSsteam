@@ -432,6 +432,22 @@ static bool hkClientUser_BIsSubscribedApp(void* pClientUser, uint32_t appId)
 	return true;
 }
 
+static uint8_t hkClientUser_IsUserSubscribedAppInTicket(void* pClientUser, uint32_t steamId, uint32_t a2, uint32_t a3, uint32_t appId)
+{
+	const char ticketState = Hooks::IClientUser_IsUserSubscribedAppInTicket.tramp.fn(pClientUser, steamId, a2, a3, appId);
+	g_pLog->once("IClientUser::IsUserSubscribedInAppTicket(%p, %u, %u, %u, %u) -> %i\n", pClientUser, steamId, a2, a3, appId, ticketState);
+	//Don't log the steamId, protect users from themselves and stuff
+	//g_pLog->once("IClientUser::IsUserSubscribedInAppTicket(%p, %u, %u, %u) -> %i\n", pClientUser, a2, a3, appId, subscribed);
+
+	if (!g_config.shouldExcludeAppId(appId))
+	{
+		//Owned and subscribed hehe :)
+		return 0;
+	}
+
+	return ticketState;
+}
+
 static uint32_t hkClientUser_GetSubscribedApps(void* pClientUser, uint32_t* pAppList, size_t size, bool a3)
 {
 	uint32_t count = Hooks::IClientUser_GetSubscribedApps.tramp.fn(pClientUser, pAppList, size, a3);
@@ -563,6 +579,7 @@ namespace Hooks
 	DetourHook<IClientRemoteStorage_PipeLoop_t> IClientRemoteStorage_PipeLoop("IClientRemoteStorage::PipeLoop");
 
 	DetourHook<IClientUser_BIsSubscribedApp_t> IClientUser_BIsSubscribedApp("IClientUser::BIsSubscribedApp");
+	DetourHook<IClientUser_IsUserSubscribedAppInTicket_t> IClientUser_IsUserSubscribedAppInTicket("IClientUser::IsUserSubscribedAppInTicket");
 	DetourHook<IClientUser_GetSubscribedApps_t> IClientUser_GetSubscribedApps("IClientUser::GetSubscribedApps");
 	DetourHook<IClientUser_RequiresLegacyCDKey_t> IClientUser_RequiresLegacyCDKey("IClientUser::RequiresLegacyCDKey");
 
@@ -645,6 +662,7 @@ bool Hooks::setup()
 		CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkCheckAppOwnership)
 		&& LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, MemHlp::SigFollowMode::Relative, &hkLogSteamPipeCall)
 		&& IClientUser_BIsSubscribedApp.setup(Patterns::IsSubscribedApp, MemHlp::SigFollowMode::Relative, &hkClientUser_BIsSubscribedApp)
+		&& IClientUser_IsUserSubscribedAppInTicket.setup(Patterns::IsUserSubscribedInAppTicket, MemHlp::SigFollowMode::Relative, &hkClientUser_IsUserSubscribedAppInTicket)
 		&& IClientUser_GetSubscribedApps.setup(Patterns::GetSubscribedApps, MemHlp::SigFollowMode::Relative, &hkClientUser_GetSubscribedApps)
 
 		&& runningApp != LM_ADDRESS_BAD
@@ -683,6 +701,7 @@ void Hooks::place()
 	IClientAppManager_PipeLoop.place();
 	IClientRemoteStorage_PipeLoop.place();
 	IClientUser_BIsSubscribedApp.place();
+	IClientUser_IsUserSubscribedAppInTicket.place();
 	IClientUser_GetSubscribedApps.place();
 	IClientUser_RequiresLegacyCDKey.place();
 
@@ -698,6 +717,7 @@ void Hooks::remove()
 	IClientAppManager_PipeLoop.remove();
 	IClientRemoteStorage_PipeLoop.remove();
 	IClientUser_BIsSubscribedApp.remove();
+	IClientUser_IsUserSubscribedAppInTicket.remove();
 	IClientUser_GetSubscribedApps.remove();
 	IClientUser_RequiresLegacyCDKey.remove();
 

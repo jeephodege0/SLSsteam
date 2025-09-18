@@ -26,6 +26,8 @@ namespace Patterns
 	constexpr lm_string_t IClientUser_PipeLoop = "E8 ? ? ? ? 83 C4 10 E9 ? ? ? ? E8 ? ? ? ? FF 75";
 	//Relative
 	constexpr lm_string_t GetSubscribedApps = "E8 ? ? ? ? 89 C6 83 C4 10 85 C0 0F 84 ? ? ? ? 8B 9D ? ? ? ? 39 D8";
+	//Relative, inside the VFT func
+	constexpr lm_string_t IsUserSubscribedInAppTicket = "E8 ? ? ? ? 83 C4 38 5B C3 ? ? ? ? ? ? ? 8D 83";
 	//Relative
 	constexpr lm_string_t IsSubscribedApp = "E8 ? ? ? ? 83 C4 10 84 C0 74 ? 8B 95 ? ? ? ? 83 EC 04";
 	//End of function
