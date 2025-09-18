@@ -439,6 +439,8 @@ static uint8_t hkClientUser_IsUserSubscribedAppInTicket(void* pClientUser, uint3
 	//Don't log the steamId, protect users from themselves and stuff
 	//g_pLog->once("IClientUser::IsUserSubscribedInAppTicket(%p, %u, %u, %u) -> %i\n", pClientUser, a2, a3, appId, subscribed);
 
+	//Might want to compare the steamId param to the g_currentSteamId in the future
+	//Although not doing that might also work for Dedicated servers?
 	if (!g_config.shouldExcludeAppId(appId))
 	{
 		//Owned and subscribed hehe :)
