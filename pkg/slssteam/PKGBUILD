@@ -1,6 +1,6 @@
 # Maintainer: Ace! _SL/S <acesls@protonmail.com>
 pkgname="slssteam"
-pkgver=20250913230205
+pkgver=20250918134000
 pkgrel=1
 pkgdesc="Steamclient Mod"
 arch=("i686" "x86_64")
@@ -19,7 +19,7 @@ provides=("slssteam")
 source=("https://github.com/AceSLS/SLSsteam/archive/refs/tags/$pkgver.tar.gz")
 makedepends=("gcc")
 
-sha256sums=("0c99378030d7e237274c9acf227b86068d603c187bfda78053622de6ec2be7a8")
+sha256sums=('6c2b3c7d8cedb7e7c76eea0de41f9b1628674daf1113f2309e69b877b182a301')
 validpgpkeys=("63AB8F4BF8A62EEEB8D8C7584410F8CF7129B2D6")
 
 build() {
