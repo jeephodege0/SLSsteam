@@ -435,9 +435,9 @@ static bool hkClientUser_BIsSubscribedApp(void* pClientUser, uint32_t appId)
 static uint8_t hkClientUser_IsUserSubscribedAppInTicket(void* pClientUser, uint32_t steamId, uint32_t a2, uint32_t a3, uint32_t appId)
 {
 	const char ticketState = Hooks::IClientUser_IsUserSubscribedAppInTicket.tramp.fn(pClientUser, steamId, a2, a3, appId);
-	g_pLog->once("IClientUser::IsUserSubscribedInAppTicket(%p, %u, %u, %u, %u) -> %i\n", pClientUser, steamId, a2, a3, appId, ticketState);
+	g_pLog->once("IClientUser::IsUserSubscribedAppInTicket(%p, %u, %u, %u, %u) -> %i\n", pClientUser, steamId, a2, a3, appId, ticketState);
 	//Don't log the steamId, protect users from themselves and stuff
-	//g_pLog->once("IClientUser::IsUserSubscribedInAppTicket(%p, %u, %u, %u) -> %i\n", pClientUser, a2, a3, appId, subscribed);
+	//g_pLog->once("IClientUser::IsUserSubscribedAppInTicket(%p, %u, %u, %u) -> %i\n", pClientUser, a2, a3, appId, subscribed);
 
 	//Might want to compare the steamId param to the g_currentSteamId in the future
 	//Although not doing that might also work for Dedicated servers?
@@ -665,7 +665,7 @@ bool Hooks::setup()
 		CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkCheckAppOwnership)
 		&& LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, MemHlp::SigFollowMode::Relative, &hkLogSteamPipeCall)
 		&& IClientUser_BIsSubscribedApp.setup(Patterns::IsSubscribedApp, MemHlp::SigFollowMode::Relative, &hkClientUser_BIsSubscribedApp)
-		&& IClientUser_IsUserSubscribedAppInTicket.setup(Patterns::IsUserSubscribedInAppTicket, MemHlp::SigFollowMode::Relative, &hkClientUser_IsUserSubscribedAppInTicket)
+		&& IClientUser_IsUserSubscribedAppInTicket.setup(Patterns::IsUserSubscribedAppInTicket, MemHlp::SigFollowMode::Relative, &hkClientUser_IsUserSubscribedAppInTicket)
 		&& IClientUser_GetSubscribedApps.setup(Patterns::GetSubscribedApps, MemHlp::SigFollowMode::Relative, &hkClientUser_GetSubscribedApps)
 
 		&& runningApp != LM_ADDRESS_BAD
