@@ -9,7 +9,7 @@
 4. [Installation and Uninstallation](#installation-and-uninstallation)
 5. [Updating](#updating)
 6. [Hall of Fame 👑](#hall-of-fame-aka-credits)
-7. [Hall of Shame 🚨](#hall-of-shame-aka-scammers,-leechers,-etc)
+7. [Hall of Shame 🚨](#hall-of-shame-aka-scammers-leechers-etc)
 
 ## Downloading and Compiling
 
@@ -138,6 +138,7 @@ Others:
 
 
 ## Hall of Shame aka Scammers, Leechers, etc
+
 🚨This list exists purely for educational and entertainmnent purposes!
 Please do not seek out Projects listed here!
 If you decide to ignore the aformened warning you do so on your own risk!🚨
