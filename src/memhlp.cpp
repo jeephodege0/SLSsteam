@@ -4,9 +4,72 @@
 
 #include <vector>
 
+std::vector<int16_t> MemHlp::patternToBytes(const char* pattern)
+{
+	auto bytes = std::vector<int16_t>();
+
+	char* start = const_cast<char*>(pattern);
+	char* end = start + strlen(pattern);
+
+	while (start < end)
+	{
+		if (*start == '?')
+		{
+			bytes.emplace_back(-1);
+		}
+		else if (*start != ' ')
+		{
+			bytes.emplace_back(std::strtoul(start, &start, 16));
+		}
+
+		start++;
+	}
+
+	return bytes;
+}
+
+lm_address_t MemHlp::patternScan(const char* pattern, lm_module_t module)
+{
+	const auto bytes = patternToBytes(pattern);
+
+	//For some reason these last bytes crash on read access, even if PROT_R is set.
+	//If anyone knows why that could be please let me know <3
+	constexpr lm_address_t excludeTailSize = 0xd8000;
+	const lm_address_t end = module.end - excludeTailSize - bytes.size() - 1;
+
+	for (lm_address_t cur = module.base; cur < end; cur++)
+	{
+		bool found = true;
+		for(unsigned int i = 0; i < bytes.size(); i++)
+		{
+			if (bytes.at(i) == -1)
+			{
+				continue;
+			}
+
+			lm_address_t byteAddr = cur + i;
+
+			const lm_byte_t* pbyte = reinterpret_cast<lm_byte_t*>(byteAddr);
+			if (*pbyte != bytes.at(i))
+			{
+				found = false;
+				break;
+			}
+		}
+
+		if (found)
+		{
+			return cur;
+		}
+	}
+
+	return LM_ADDRESS_BAD;
+}
+
 lm_address_t MemHlp::searchSignature(const char* name, const char* signature, lm_module_t module, SigFollowMode mode, void* extraData, size_t extraDataSize)
 {
-	lm_address_t address = LM_SigScan(signature, module.base, module.size);
+	//lm_address_t address = LM_SigScan(signature, module.base, module.size);
+	lm_address_t address = patternScan(signature, module);
 	if (address == LM_ADDRESS_BAD)
 	{
 		g_pLog->debug("Unable to find signature for %s!\n", name);

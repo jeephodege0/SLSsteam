@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <vector>
 
 namespace MemHlp
 {
@@ -41,6 +42,9 @@ namespace MemHlp
 		address += inst.size;
 		return true;
 	}
+
+	std::vector<int16_t> patternToBytes(const char* pattern);
+	lm_address_t patternScan(const char* pattern, lm_module_t module);
 
 	lm_address_t searchSignature(const char* name, const char* signature, lm_module_t module, SigFollowMode mode, void* extraData, size_t extraDataSize);
 	lm_address_t searchSignature(const char* name, const char* signature, lm_module_t module, SigFollowMode mode);
