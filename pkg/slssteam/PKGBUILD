@@ -1,6 +1,6 @@
 # Maintainer: Ace! _SL/S <acesls@protonmail.com>
 pkgname="slssteam"
-pkgver=20250918134000
+pkgver=20250920175812
 pkgrel=1
 pkgdesc="Steamclient Mod"
 arch=("i686" "x86_64")
