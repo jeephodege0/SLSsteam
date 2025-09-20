@@ -35,6 +35,7 @@
 
 #define LM_PATH_MAX (4096) /* Fits up to 1024 4-byte UTF-8 characters */
 #define LM_INST_MAX (16) /* Maximum size of a single instruction */
+#define LM_CMDLINE_MAX (8192)
 
 /* Path separator */
 #ifdef _WIN32
@@ -105,8 +106,10 @@ typedef uint32_t lm_prot_t;
  *        necessarily fully supported by libmem.
  */
 enum {
+	LM_ARCH_GENERIC = 0,
+	
 	/* ARM */
-	LM_ARCH_ARMV7 = 0, /* ARMv7 */
+	LM_ARCH_ARMV7, /* ARMv7 */
 	LM_ARCH_ARMV8,     /* ARMv8 */
 	LM_ARCH_THUMBV7,   /* ARMv7, thumb mode */
 	LM_ARCH_THUMBV8,   /* ARMv8, thumb mode */
@@ -284,6 +287,27 @@ LM_GetProcess(lm_process_t *process_out);
 LM_API lm_bool_t LM_CALL
 LM_GetProcessEx(lm_pid_t      pid,
 		lm_process_t *process_out);
+
+/**
+ * Retrieves the command line arguments of a process.
+ * WARN: Requires reading process memory on Windows.
+ *
+ * @param process The process to retrieve the command line from.
+ *
+ * @return An allocated string containing the command line of the
+ * process (must be freed with `LM_FreeCommandLine`), or `NULL`
+ * if it fails.
+ */
+LM_API lm_char_t ** LM_CALL
+LM_GetCommandLine(lm_process_t *process);
+
+/**
+ * Frees a command line buffer obtained from `LM_GetCommandLine`
+ *
+ * @param cmdline The allocated command line buffer
+ */
+LM_API lm_void_t LM_CALL
+LM_FreeCommandLine(lm_char_t **cmdline);
 
 /**
  * Searches for a process by name and returns whether the process was
@@ -1147,7 +1171,7 @@ LM_SigScanEx(const lm_process_t *process,
  *
  * @return The function returns the architecture of the system. It can be one of:
  * - `LM_ARCH_X86` for 32-bit x86.
- * - `LM_ARCH_AMD64` for 64-bit x86.
+ * - `LM_ARCH_X64` for 64-bit x86.
  * - Others (check the enum for `lm_arch_t`)
  */
 LM_API lm_arch_t LM_CALL

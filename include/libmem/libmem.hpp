@@ -57,8 +57,10 @@ namespace libmem {
 	};
 
 	enum class Arch: uint32_t {
+		GENERIC = 0,
+
 		/* ARM */
-		ARMV7 = 0, /* ARMv7 */
+		ARMV7,     /* ARMv7 */
 		ARMV8,     /* ARMv8 */
 		THUMBV7,   /* ARMv7, thumb mode */
 		THUMBV8,   /* ARMv8, thumb mode */
@@ -204,6 +206,9 @@ namespace libmem {
 	/// Gets a process by its process ID
 	LM_API std::optional<Process> LM_CALL GetProcess(Pid pid);
 
+	/// Retrieves the command line arguments of a process
+	LM_API std::optional<std::vector<std::string>> LM_CALL GetCommandLine(const Process *process);
+
 	/// Finds a process by its name
 	LM_API std::optional<Process> LM_CALL FindProcess(const char *process_name);
 
@@ -327,10 +332,10 @@ namespace libmem {
 		WriteMemory(dest, reinterpret_cast<uint8_t *>(&source), sizeof(T));
 	}
 
-	/// Writes memory into a destination address in a remote  process
+	/// Writes memory into a destination address in a remote process
 	LM_API size_t LM_CALL WriteMemory(const Process *process, Address dest, uint8_t *source, size_t size);
 
-	/// Writes memory into a destination address in a remote  process
+	/// Writes memory into a destination address in a remote process
 	template <typename T>
 	inline void WriteMemory(const Process *process, Address dest, T source)
 	{
