@@ -19,7 +19,7 @@ provides=("slssteam")
 source=("https://github.com/AceSLS/SLSsteam/archive/refs/tags/$pkgver.tar.gz")
 makedepends=("gcc")
 
-sha256sums=('6c2b3c7d8cedb7e7c76eea0de41f9b1628674daf1113f2309e69b877b182a301')
+sha256sums=('5577a3313b89290996c9a0aef3ea27cc8298d0d5386b925f850e367095349a73')
 validpgpkeys=("63AB8F4BF8A62EEEB8D8C7584410F8CF7129B2D6")
 
 build() {
