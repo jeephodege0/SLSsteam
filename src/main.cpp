@@ -57,7 +57,15 @@ static bool verifySteamClientHash()
 
 	auto path = std::filesystem::path(g_modSteamClient.path);
 	auto dir = path.parent_path();
-	g_pLog->info("steamclient.so loaded from %s/%s at %p\n", dir.filename().c_str(), path.filename().c_str(), g_modSteamClient.base);
+
+	g_pLog->info
+	(
+		"steamclient.so loaded from %s/%s at %p to %p\n",
+		dir.filename().c_str(),
+		path.filename().c_str(),
+		g_modSteamClient.base,
+		g_modSteamClient.end
+	);
 
 	try
 	{

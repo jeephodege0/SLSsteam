@@ -605,7 +605,7 @@ bool Hooks::setup()
 
 	IClientUser_GetSteamId = MemHlp::searchSignature("IClientUser::GetSteamId", Patterns::GetSteamId, g_modSteamClient, MemHlp::SigFollowMode::Relative);
 
-	lm_address_t runningApp = MemHlp::searchSignature("RnningApp", Patterns::FamilyGroupRunningApp, g_modSteamClient, MemHlp::SigFollowMode::Relative);
+	lm_address_t runningApp = MemHlp::searchSignature("RunningApp", Patterns::FamilyGroupRunningApp, g_modSteamClient, MemHlp::SigFollowMode::Relative);
 
 	auto prologue = std::vector<lm_byte_t>({
 		0x56, 0x57, 0xe5, 0x89, 0x55
