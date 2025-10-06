@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <pthread.h>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -58,9 +58,9 @@ public:
 		{
 			 return node[name].as<T>();
 		}
-		catch (YAML::BadConversion& er)
+		catch (YAML::BadConversion&)
 		{
-			g_pLog->notify("Failed to parse value of %s! Using default\n", name);
+			g_pLog->notify("Failed to parse value of %s! Using default", name);
 			return defVal;
 		}
 	};

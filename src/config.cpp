@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <filesystem>
 #include <string>
+#include <fstream>
+#include <windows.h>
 
 //TODO: Move into own .yaml file somehow
 static const char* defaultConfig = 
@@ -47,38 +49,47 @@ static const char* defaultConfig =
 "DenuvoGames:\n\n"
 "#Spoof Denuvo Games owner instead of blocking them\n"
 "DenuvoSpoof: no\n\n"
-"#Automatically disable SLSsteam when steamclient.so does not match a predefined file hash that is known to work\n"
-"#You should enable this if you're planing to use SLSsteam with Steam Deck's gamemode\n"
+"#Automatically disable SuperSexySteam when steamclient.dll does not match a predefined file hash that is known to work\n"
+"#You should enable this if you're planing to use SuperSexySteam with Steam Deck's gamemode\n"
 "SafeMode: no\n\n"
 "#Toggles notifications via notify-send\n"
 "Notifications: yes\n\n"
-"#Warn user via notification when steamclient.so hash differs from known safe hash\n"
+"#Warn user via notification when steamclient.dll hash differs from known safe hash\n"
 "#Mostly useful for development so I don't accidentally miss an update\n"
 "WarnHashMissmatch: no\n\n"
-"#Notify when SLSsteam is done initializing\n"
+"#Notify when SuperSexySteam is done initializing\n"
 "NotifyInit: yes\n\n"
 "#Logs all calls to Steamworks (this makes the logfile huge! Only useful for debugging/analyzing\n"
 "ExtendedLogging: no";
 
 std::string CConfig::getDir()
 {
-	char pathBuf[255];
-	const char* configDir = getenv("XDG_CONFIG_HOME"); //Most users should have this set iirc
-	if (configDir != NULL)
+	wchar_t exePathBuffer[MAX_PATH];
+
+	// Get the full path of the host executable (e.g., steam.exe).
+	if (GetModuleFileNameW(NULL, exePathBuffer, MAX_PATH) == 0)
 	{
-		sprintf(pathBuf, "%s/SLSsteam", configDir);
-	} else
-	{
-		const char* home = getenv("HOME");
-		sprintf(pathBuf, "%s/.config/SLSsteam", home);
+		g_pLog->notify("Could not get host executable path. Config cannot be loaded or created.");
+		return "";
 	}
 
-	return std::string(pathBuf);
+	// Get the directory containing the executable and append the config path.
+	std::filesystem::path configPath = std::filesystem::path(exePathBuffer).parent_path();
+	configPath /= "config";
+	configPath /= "SuperSexySteam";
+
+	return configPath.string();
 }
 
 std::string CConfig::getPath()
 {
-	return getDir().append("/config.yaml");
+	std::filesystem::path configPath = getDir();
+	if (configPath.empty())
+	{
+		return "";
+	}
+	configPath /= "config.yaml";
+	return configPath.string();
 }
 
 bool CConfig::createFile()
@@ -91,23 +102,21 @@ bool CConfig::createFile()
 		{
 			if (!std::filesystem::create_directory(dir))
 			{
-				g_pLog->notify("Unable to create config directory at %s!\n", dir.c_str());
+				g_pLog->notify("Unable to create config directory at %s!", dir.c_str());
 				return false;
 			}
 
-			g_pLog->debug("Created config directory at %s\n");
+			g_pLog->debug("Created config directory at %s", dir.c_str());
 		}
 
-		FILE* file = fopen(path.c_str(), "w");
-		if (!file)
+		std::ofstream configFile(path);
+		if (!configFile.is_open())
 		{
-			g_pLog->notify("Unable to create config at %s!\n", path.c_str());
+			g_pLog->notify("Unable to create config at %s!", path.c_str());
 			return false;
 		}
 
-		fputs(defaultConfig, file);
-		fflush(file);
-		fclose(file);
+		configFile << defaultConfig;
 	}
 
 	return true;
@@ -150,16 +159,16 @@ bool CConfig::loadSettings()
 	denuvoSpoof = getSetting<bool>(node, "DenuvoSpoof", false);
 
 	//TODO: Create smart logging function to log them automatically via getSetting
-	g_pLog->info("DisableFamilyShareLock: %i\n", disableFamilyLock);
-	g_pLog->info("UseWhitelist: %i\n", useWhiteList);
-	g_pLog->info("AutoFilterList: %i\n", automaticFilter);
-	g_pLog->info("PlayNotOwnedGames: %i\n", playNotOwnedGames);
-	g_pLog->info("SafeMode: %i\n", safeMode);
-	g_pLog->info("Notifications: %i\n", notifications);
-	g_pLog->info("WarnHashMissmatch: %i\n", warnHashMissmatch);
-	g_pLog->info("NotifyInit: %i\n", notifyInit);
-	g_pLog->info("ExtendedLogging: %i\n", extendedLogging);
-	g_pLog->info("DenuvoSpoof: %i\n", denuvoSpoof);
+	g_pLog->info("DisableFamilyShareLock: %i", disableFamilyLock);
+	g_pLog->info("UseWhitelist: %i", useWhiteList);
+	g_pLog->info("AutoFilterList: %i", automaticFilter);
+	g_pLog->info("PlayNotOwnedGames: %i", playNotOwnedGames);
+	g_pLog->info("SafeMode: %i", safeMode);
+	g_pLog->info("Notifications: %i", notifications);
+	g_pLog->info("WarnHashMissmatch: %i", warnHashMissmatch);
+	g_pLog->info("NotifyInit: %i", notifyInit);
+	g_pLog->info("ExtendedLogging: %i", extendedLogging);
+	g_pLog->info("DenuvoSpoof: %i", denuvoSpoof);
 
 	//TODO: Create function to parse these kinda nodes, instead of c+p them
 	const auto appIdsNode = node["AppIds"];
@@ -171,7 +180,7 @@ bool CConfig::loadSettings()
 			{
 				uint32_t appId = appIdNode.as<uint32_t>();
 				this->appIds.emplace(appId);
-				g_pLog->info("Added %u to AppIds\n", appId);
+				g_pLog->info("Added %u to AppIds", appId);
 			}
 			catch(...)
 			{
@@ -193,7 +202,7 @@ bool CConfig::loadSettings()
 			{
 				uint32_t appId = appIdNode.as<uint32_t>();
 				this->addedAppIds.emplace(appId);
-				g_pLog->info("Added %u to AdditionalApps\n", appId);
+				g_pLog->info("Added %u to AdditionalApps", appId);
 			}
 			catch(...)
 			{
@@ -217,7 +226,7 @@ bool CConfig::loadSettings()
 
 				CDlcData data;
 				data.parentId = parentId;
-				g_pLog->debug("Adding DlcData for %u\n", parentId);
+				g_pLog->debug("Adding DlcData for %u", parentId);
 
 				for(auto& dlc : app.second)
 				{
@@ -226,7 +235,7 @@ bool CConfig::loadSettings()
 					const std::string dlcName = dlc.second.as<std::string>();
 
 					data.dlcIds[dlcId] = dlcName;
-					g_pLog->debug("DlcId %u -> %s\n", dlcId, dlcName.c_str());
+					g_pLog->debug("DlcId %u -> %s", dlcId, dlcName.c_str());
 				}
 
 				dlcData[parentId] = data;
@@ -259,7 +268,7 @@ bool CConfig::loadSettings()
 					denuvoGames[steamId].emplace(appId);
 
 					//Again, not loggin SteamId because of privacy
-					g_pLog->debug("Added DenuvoGame %u\n", appId, steamId);
+					g_pLog->debug("Added DenuvoGame %u", appId);
 				}
 			}
 			catch (...)
@@ -287,7 +296,7 @@ bool CConfig::addAdditionalAppId(uint32_t appId)
 		return false;
 
 	addedAppIds.emplace(appId);
-	g_pLog->once("Force owned %u\n", appId); //once is unnessecary but just for consistency
+	g_pLog->once("Force owned %u", appId); //once is unnessecary but just for consistency
 	return true;
 }
 
@@ -295,7 +304,7 @@ bool CConfig::shouldExcludeAppId(uint32_t appId)
 {
 	bool exclude = false;
 	//Proper way would be with getAppType, but that seems broken so we need to do this instead
-	constexpr uint32_t ONE_BILLION = 1E9; //Implicit cast from double to unsigned int, hopefully this does not break anything
+	constexpr uint32_t ONE_BILLION = 1000000000; //Use integer literal 1 billion or 1E9 to avoid implicit cast
 	if (appId >= ONE_BILLION) //Higher and equal to 10^9 gets used by Steam Internally
 	{
 		exclude = true;
@@ -306,7 +315,7 @@ bool CConfig::shouldExcludeAppId(uint32_t appId)
 		exclude = !isAddedAppId(appId) && ((useWhiteList && !found) || (!useWhiteList && found));
 	}
 
-	g_pLog->once("shouldExcludeAppId(%u) -> %i\n", appId, exclude);
+	g_pLog->once("shouldExcludeAppId(%u) -> %i", appId, exclude);
 	return exclude;
 }
 
@@ -316,7 +325,7 @@ uint32_t CConfig::getDenuvoGameOwner(uint32_t appId)
 	{
 		if (tpl.second.contains(appId))
 		{
-			//g_pLog->once("%u is DenuvoGame\n", appId);
+			//g_pLog->once("%u is DenuvoGame", appId);
 			return tpl.first;
 		}
 	}

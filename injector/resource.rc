@@ -1,0 +1,71 @@
+// Required for resource file definitions
+#include <windows.h>
+
+// Include your version definitions
+#include "version.h"
+
+
+// --- Application Icon ---
+// The main icon for your application.
+// IDI_MYICON is a user-defined identifier.
+
+#define IDI_MYICON 101
+IDI_MYICON ICON "res/favicon.ico"
+
+
+// --- Version Information Block ---
+// This block embeds version and product details into the executable.
+// It uses the macros defined in version.h.
+
+VS_VERSION_INFO VERSIONINFO
+// File version from version.h
+FILEVERSION     VERSION_RC
+// Product version from version.h
+PRODUCTVERSION  VERSION_RC
+// File flags mask: indicates which bits in FILEFLAGS are valid.
+// Usually set to VS_FFI_FILEFLAGSMASK
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+// File flags: provides information about the file (e.g., debug, prerelease).
+// VS_FF_DEBUG is set if the _DEBUG preprocessor symbol is defined.
+#ifdef _DEBUG
+  FILEFLAGS   VS_FF_DEBUG
+#else
+  FILEFLAGS   0x0L
+#endif
+// File OS: The operating system for which this file was designed.
+// VOS_NT_WINDOWS32 is the standard for modern Windows applications.
+FILEOS          VOS_NT_WINDOWS32
+// File type: VFT_APP for an application (.exe), VFT_DLL for a library (.dll).
+FILETYPE        VFT_APP
+// File subtype: usually 0, unless it's a specific type of driver.
+FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        // Language and code page block.
+        // 0409: US English
+        // 04b0: Unicode
+        // This is a common standard.
+        BLOCK "040904b0"
+        BEGIN
+            // These VALUE entries correspond to the fields in the "Details" tab
+            // of the file properties dialog in Windows Explorer.
+            VALUE "CompanyName",      COMPANY_NAME_STR
+            VALUE "FileDescription",  FILE_DESCRIPTION_STR
+            VALUE "FileVersion",      VERSION_STR
+            VALUE "InternalName",     INTERNAL_NAME_STR
+            VALUE "LegalCopyright",   LEGAL_COPYRIGHT_STR
+            VALUE "OriginalFilename", ORIGINAL_FILENAME_STR
+            VALUE "ProductName",      PRODUCT_NAME_STR
+            VALUE "ProductVersion",   VERSION_STR
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        // This specifies the language and code page pairings for the text
+        // in the StringFileInfo block. The values should match the block above.
+        // 0x0409: Language ID for US English
+        // 1200:   Code page for Unicode (0x04B0)
+        VALUE "Translation", 0x409, 1200
+    END
+END

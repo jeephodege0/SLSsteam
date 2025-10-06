@@ -3,13 +3,17 @@
 
 #include <cstdlib>
 #include <memory>
+#include <filesystem>
+#include <stdexcept>
+#include <windows.h>
 
-CLog::CLog(const char* path) : path(path)
+namespace fs = std::filesystem;
+
+CLog::CLog(const char* path) : path(path), ofstream(path, std::ios::out)
 {
-	ofstream = std::ofstream(path, std::ios::out);
 	if (!ofstream.is_open())
 	{
-		throw std::runtime_error("Unable to open logfile!");
+		throw std::runtime_error("Unable to open logfile: " + std::string(path));
 	}
 }
 
@@ -24,9 +28,10 @@ CLog::~CLog()
 	{
 		free(msg);
 	}
+	// msgCache is automatically cleared by its own destructor.
 }
 
-//Dirty workaround for not being able to access g_config from __log
+// Dirty workaround for not being able to access g_config from __log
 bool CLog::shouldNotify()
 {
 	return g_config.notifications;
@@ -34,13 +39,35 @@ bool CLog::shouldNotify()
 
 CLog* CLog::createDefaultLog()
 {
-	const char* home = getenv("HOME");
-	if (home)
+	try
 	{
-		std::stringstream ss;
-		ss << home << "/.SLSsteam.log";
+		wchar_t exePathBuffer[MAX_PATH];
+		if (GetModuleFileNameW(NULL, exePathBuffer, MAX_PATH) == 0)
+		{
+			fprintf(stderr, "SuperSexySteam Error: GetModuleFileNameW failed.");
+			return nullptr;
+		}
+		
+		fs::path logDir = fs::path(exePathBuffer).parent_path();
+		logDir /= "config";
+		logDir /= "SuperSexySteam";
 
-		return new CLog(ss.str().c_str());
+		// Create the full directory path if it doesn't exist.
+		fs::create_directories(logDir);
+
+		fs::path logFile = logDir / "supersexysteam.log";
+
+		return new CLog(logFile.string().c_str());
+	}
+	catch (const fs::filesystem_error& e)
+	{
+		fprintf(stderr, "Filesystem error creating log file: %s", e.what());
+		return nullptr;
+	}
+	catch (const std::runtime_error& e)
+	{
+		fprintf(stderr, "Runtime error creating log file: %s", e.what());
+		return nullptr;
 	}
 
 	return nullptr;
