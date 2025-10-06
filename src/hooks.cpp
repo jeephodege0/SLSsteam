@@ -143,6 +143,30 @@ static void hkLogSteamPipeCall(const char* iface, const char* fn)
 	}
 }
 
+static uint32_t hkCAPIJob_RequestUserStats(void* a0)
+{
+	const uint32_t ret = Hooks::CAPIJob_RequestUserStats.tramp.fn(a0);
+	g_pLog->once
+	(
+		"%s(%p) -> %u\n",
+		Hooks::CAPIJob_RequestUserStats.name.c_str(),
+		a0,
+		ret
+	);
+
+	switch (ret)
+	{
+		//1 = Success
+		case 1:
+			return ret;
+
+		//2 = Failed
+		//3 = No Connection
+		default:
+			return 3;
+	}
+}
+
 static bool applistRequested = false;
 static auto appIdOwnerOverride = std::map<uint32_t, int>();
 
@@ -575,6 +599,7 @@ namespace Hooks
 	// For non-member function hooks, both template arguments are the same.
 	DetourHook<LogSteamPipeCall_t, LogSteamPipeCall_t> LogSteamPipeCall("LogSteamPipeCall");
 	DetourHook<LoadLibraryExW_t, LoadLibraryExW_t> LoadLibraryExW_Hook("LoadLibraryExW");
+	DetourHook<CAPIJob_RequestUserStats_t, CAPIJob_RequestUserStats_t> CAPIJob_RequestUserStats("CAPIJob_RequestUserStats");
 	
 	// For member function hooks, specify the original __thiscall type and our __fastcall hook type.
 	DetourHook<CheckAppOwnership_t, CheckAppOwnership_Hook_t> CheckAppOwnership("CheckAppOwnership");
@@ -671,6 +696,7 @@ bool Hooks::setup()
 	bool succeeded =
 		CheckAppOwnership.setup(Patterns::CheckAppOwnership, MemHlp::SigFollowMode::Relative, &hkCheckAppOwnership)
 		&& LogSteamPipeCall.setup(Patterns::LogSteamPipeCall, MemHlp::SigFollowMode::Relative, &hkLogSteamPipeCall)
+		&& CAPIJob_RequestUserStats.setup(Patterns::CAPIJob_RequestUserStats, MemHlp::SigFollowMode::Relative, &hkCAPIJob_RequestUserStats)
 		&& IClientUser_BIsSubscribedApp.setup(Patterns::IsSubscribedApp, MemHlp::SigFollowMode::Relative, &hkClientUser_BIsSubscribedApp)
 		&& IClientUser_IsUserSubscribedAppInTicket.setup(Patterns::IsUserSubscribedAppInTicket, MemHlp::SigFollowMode::Relative, &hkClientUser_IsUserSubscribedAppInTicket)
 		&& IClientUser_GetSubscribedApps.setup(Patterns::GetSubscribedApps, MemHlp::SigFollowMode::Relative, &hkClientUser_GetSubscribedApps)
@@ -707,6 +733,7 @@ void Hooks::place()
 	//Detours
 	CheckAppOwnership.place();
 	LogSteamPipeCall.place();
+	CAPIJob_RequestUserStats.place();
 	IClientApps_PipeLoop.place();
 	IClientAppManager_PipeLoop.place();
 	IClientRemoteStorage_PipeLoop.place();
@@ -723,6 +750,7 @@ void Hooks::remove()
 	//Detours
 	CheckAppOwnership.remove();
 	LogSteamPipeCall.remove();
+	CAPIJob_RequestUserStats.remove();
 	IClientApps_PipeLoop.remove();
 	IClientAppManager_PipeLoop.remove();
 	IClientRemoteStorage_PipeLoop.remove();

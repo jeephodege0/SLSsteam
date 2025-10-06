@@ -29,6 +29,8 @@ namespace Patterns
 	//s-xref - breakpoint at call of vfunc - into for that function
 	constexpr lm_string_t GetSteamId = "E8 ? ? ? ? 8B C8 85 C9 74 ? C6 41 ? 01 C7 41 ? 00 00 00 00 C7 41 ? 00 00 00 00 A1 ? ? ? ? 89 41 ? A1 ? ? ? ? 89 41 ? A1 ? ? ? ? 89 41 ? A1 ? ? ? ? 89 41 ? A1 ? ? ? ? 89 41 ? C7 41 ? FF FF FF FF 66 C7 41 ? 00 00 8B 35 ? ? ? ? 8D 8E ? ? ? ? E8";
 
+	//Relative
+	constexpr lm_string_t CAPIJob_RequestUserStats = "E8 ? ? ? ? 59 5E 50 89 C7";
 
 	//PipeLoops - string xref - biggest one
 

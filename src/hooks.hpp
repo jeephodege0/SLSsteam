@@ -85,6 +85,8 @@ namespace Hooks
 {
 	// These hook non-member functions, so their original and hook types are the same.
 	typedef void(*LogSteamPipeCall_t)(const char*, const char*);
+
+	typedef uint32_t(*CAPIJob_RequestUserStats_t)(void*);
 	
 	// Hook for LoadLibraryExW to detect steamclient.dll loading
 	typedef HMODULE(WINAPI* LoadLibraryExW_t)(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags);
@@ -139,6 +141,7 @@ namespace Hooks
 	// For non-member function hooks, both template arguments are the same.
 	extern DetourHook<LogSteamPipeCall_t, LogSteamPipeCall_t> LogSteamPipeCall;
 	extern DetourHook<LoadLibraryExW_t, LoadLibraryExW_t> LoadLibraryExW_Hook;
+	extern DetourHook<CAPIJob_RequestUserStats_t, CAPIJob_RequestUserStats_t> CAPIJob_RequestUserStats;
 
 	// For member function hooks, specify the original __thiscall type and our __fastcall hook type.
 	extern DetourHook<CheckAppOwnership_t, CheckAppOwnership_Hook_t> CheckAppOwnership;
